@@ -7,6 +7,7 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 
 const vite = await createServer({
   configFile: false,
+  envFile: false,
   optimizeDeps: { noDiscovery: true, include: [] },
   server: { middlewareMode: true },
   appType: 'custom',
@@ -18,6 +19,26 @@ const { useContaStore } = await vite.ssrLoadModule('/src/stores/conta.ts');
 const { contaApi } = await vite.ssrLoadModule('/src/api/conta.ts');
 const { celular } = await vite.ssrLoadModule('/src/utils/regrasForm.ts');
 const { rotasAnteriores } = await vite.ssrLoadModule('/src/router/compatibilidade.ts');
+const { alvoDoRelogio } = await vite.ssrLoadModule('/src/utils/datas.ts');
+const { adminApi } = await vite.ssrLoadModule('/src/api/admin.ts');
+const { http } = await vite.ssrLoadModule('/src/api/http.ts');
+
+test('avançar o relógio permite esperar até 60 segundos pela API', async (t) => {
+  const post = t.mock.method(http, 'post', async () => ({ config: {} }));
+  await adminApi.avancarRelogio({ ate: '2026-12-05' });
+  assert.deepEqual(post.mock.calls[0].arguments, [
+    '/admin/relogio/avancar', { ate: '2026-12-05' }, { timeout: 60_000 },
+  ]);
+});
+
+test('o destino do relógio usa a data exibida e respeita o último dia do mês', () => {
+  assert.equal(alvoDoRelogio('2026-11-05T00:00:00.000Z', { meses: 1 }), '2026-12-05');
+  assert.equal(alvoDoRelogio('2026-01-31T00:00:00.000Z', { meses: 1 }), '2026-02-28');
+  assert.equal(alvoDoRelogio('2028-01-31T00:00:00.000Z', { meses: 1 }), '2028-02-29');
+  assert.equal(alvoDoRelogio('2026-12-31T00:00:00.000Z', { dias: 7 }), '2027-01-07');
+  assert.equal(alvoDoRelogio('2026-12-31T00:00:00.000Z', { meses: 1 }), '2027-01-31');
+  assert.equal(alvoDoRelogio('2026-11-05T00:00:00.000Z', { ate: '2026-11-12' }), '2026-11-12');
+});
 function pendente() {
   let resolve, reject;
   const promise = new Promise((ok, erro) => {

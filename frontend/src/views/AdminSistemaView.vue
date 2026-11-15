@@ -106,13 +106,11 @@ import SeletorPeriodo from '../components/SeletorPeriodo.vue';
 import { aoAbrirTela } from '../composables/aoAbrirTela';
 import { useAcao } from '../composables/useAcao';
 import { adminApi } from '../api/admin';
-import { useAuthStore } from '../stores/auth';
 import { useContaStore } from '../stores/conta';
 import { useToastStore } from '../stores/toast';
-import { formatData } from '../utils/datas';
+import { alvoDoRelogio, formatData } from '../utils/datas';
 import { formatMoney, formatPercentual } from '../utils/formatMoney';
 
-const auth = useAuthStore();
 const contaStore = useContaStore();
 const toast = useToastStore();
 const config = ref(null);
@@ -139,14 +137,28 @@ function aplicarConfig(c) {
 }
 
 async function avancar(nome, pedido) {
+  if (avancando.value || !config.value) return;
+  const alvo = alvoDoRelogio(config.value.dataSistema, pedido);
   avancando.value = nome;
-  const r = await executar(() => adminApi.avancarRelogio(pedido));
+  const r = await executar(async () => {
+    try {
+      return await adminApi.avancarRelogio({ ate: alvo });
+    } catch (falha) {
+      const atual = await adminApi.obterConfig().catch(() => null);
+      if (atual) {
+        aplicarConfig(atual);
+        contaStore.dataSistema = atual.dataSistema;
+        if (atual.dataSistema.slice(0, 10) >= alvo) return { config: atual, resumo: null };
+      }
+      throw falha;
+    }
+  });
   avancando.value = null;
   if (!r) return;
   aplicarConfig(r.config);
   datas.value = [];
   resumo.value = r.resumo;
-  contaStore.atualizar(auth.user);  
+  contaStore.dataSistema = r.config.dataSistema;
   toast.mostrar('Relógio avançado');
 }
 

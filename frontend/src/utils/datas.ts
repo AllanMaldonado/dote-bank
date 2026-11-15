@@ -10,5 +10,19 @@ export const formatMes = (chave) =>
     .replace('. de ', '/')
     .replace('.', '');
 export const isoDia = (d) => new Date(d).toISOString().slice(0, 10);
+
+export function alvoDoRelogio(dataSistema, { dias, meses, ate }) {
+  if (ate) return ate;
+  const data = new Date(dataSistema);
+  if (meses !== undefined) {
+    const mes = data.getUTCMonth() + meses;
+    const ultimoDia = new Date(Date.UTC(data.getUTCFullYear(), mes + 1, 0)).getUTCDate();
+    data.setUTCDate(Math.min(data.getUTCDate(), ultimoDia));
+    data.setUTCMonth(mes);
+  } else {
+    data.setUTCDate(data.getUTCDate() + dias);
+  }
+  return isoDia(data);
+}
 const mesCurto = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC', month: 'short' });
 export const formatMesCurto = (chave) => mesCurto.format(new Date(`${chave}-01T00:00:00Z`)).replace('.', '');
