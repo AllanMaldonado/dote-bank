@@ -9,15 +9,16 @@ const swaggerSpec = require('./config/swagger');
 const errorMiddleware = require('./middlewares/errorMiddleware');
 const notFoundMiddleware = require('./middlewares/notFoundMiddleware');
 const api = require('./routes');
+const { geralLimiter } = require('./middlewares/rateLimiter');
 
 const app = express();
 app.disable('x-powered-by');
 if (env.naVercel || process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
 app.use(helmet());
 app.use(cors({ origin: env.frontendUrl }));
+app.use(['/api', '/api-docs'], geralLimiter);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 if (!env.isTest) {
   morgan.token('caminho', (req) => req.path);
   app.use(morgan(':method :caminho :status :response-time ms'));

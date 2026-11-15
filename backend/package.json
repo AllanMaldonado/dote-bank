@@ -9,6 +9,7 @@
     "start": "node dist/src/server.js",
     "dev": "tsx watch src/server.ts",
     "seed": "tsx scripts/seed.ts",
+    "seed:inicial": "tsx scripts/seedInicial.ts",
     "migrar": "tsx scripts/migrarEmails.ts",
     "criar-admin": "node dist/scripts/criarAdmin.js",
     "test": "npm run build && node --test --test-concurrency=1 \"dist/test/**/*.test.js\"",

@@ -14,19 +14,18 @@ const SENHA = '12345678';
 
 const CONTAS = { admin: 'admin@dote.com', allan: 'allan@dote.com', caio: 'caio@dote.com' };
 
-async function popular() {
-  await resetarBanco();
+async function popular({
+  reiniciarBanco = true,
+  admin = { nome: 'Admin DOTE', email: CONTAS.admin, cpf: '00000000191', senha: 'admin123' },
+  senhaClientes = SENHA,
+} = {}) {
+  if (reiniciarBanco) await resetarBanco();
 
   await relogioService.definirData(new Date('2026-01-02T00:00:00Z'));
-  await authService.criarAdmin({
-    nome: 'Admin DOTE',
-    email: CONTAS.admin,
-    cpf: '00000000191',
-    senha: 'admin123',
-  });
+  await authService.criarAdmin(admin);
 
   async function cliente(nome, email, cpf, celular) {
-    const { user } = await authService.register({ nome, email, cpf, celular, senha: SENHA });
+    const { user } = await authService.register({ nome, email, cpf, celular, senha: senhaClientes });
     return adminService.aprovar(user._id);
   }
 
@@ -47,9 +46,9 @@ async function popular() {
   await pix(caio, allan, 1500, 'Transporte', 'Carona');
 
   const CAIXINHAS_ALLAN = [
-    ['Notebook novo', 150000, 8000],
+    ['Notebook', 150000, 8000],
     ['Viagem', 200000, 5000],
-    ['Reserva de emergência', 100000, 4000],
+    ['Reserva', 100000, 4000],
     ['Presente', 30000, 2500],
     ['Curso', 80000, 2000],
     ['Bike', 120000, 1500],
@@ -76,7 +75,7 @@ async function popular() {
     descricao: 'Internet',
   });
 
-  const MESES = 10;  
+  const MESES = 10;
   const variar = (base, mes, passo) => base + ((mes * passo) % 7) * 500;
   for (let mes = 0; mes < MESES; mes++) {
     await tempoService.avancar({ ate: `2026-${String(mes + 1).padStart(2, '0')}-15` });
@@ -89,9 +88,10 @@ async function popular() {
   await Notificacao.updateMany({ data: { $lt: new Date('2026-10-01T00:00:00Z') } }, { lida: true });
 
   console.log(`Dados de demonstração criados no banco "${mongoose.connection.name}".`);
-  console.log(`  ${CONTAS.admin} / admin123`);
-  console.log(`  ${CONTAS.allan}, ${CONTAS.caio} / ${SENHA}`);
+  console.log('Contas e histórico de demonstração criados.');
 }
+
+module.exports = { popular };
 
 if (require.main === module) {
   conectarBanco()

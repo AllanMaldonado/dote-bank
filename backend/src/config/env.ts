@@ -1,4 +1,8 @@
-require('dotenv').config();
+const path = require('node:path');
+
+const pastaCodigo = path.resolve(__dirname, '../..');
+const raizProjeto = path.resolve(pastaCodigo, path.basename(pastaCodigo) === 'dist' ? '../..' : '..');
+require('dotenv').config({ path: path.join(raizProjeto, '.env') });
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const naVercel = process.env.VERCEL === '1';

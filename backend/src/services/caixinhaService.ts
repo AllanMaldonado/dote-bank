@@ -36,7 +36,7 @@ const registrarMovimento = (tipo, c, valor, data) =>
   });
 
 async function resgatarDe(c, valor, data) {
-  // O crédito só pode ser gasto depois da gravação do extrato.
+
   return movimentacaoService.comContaSerializada(c.usuarioId, async () => {
     const atualizada = await Caixinha.findOneAndUpdate(
       { _id: c._id, saldoCentavos: { $gte: valor } },
@@ -158,7 +158,7 @@ class CaixinhaService {
           { $inc: { saldoCentavos: valor, rendimentoPendente: -valor } },
           { new: true },
         );
-        if (!c) return; // Pode ter sido excluída enquanto aguardava a fila.
+        if (!c) return;
         try {
           await transacaoService.registrar({
             tipo: 'rendimento',

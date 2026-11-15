@@ -1,10 +1,12 @@
 const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const env = require('../config/env');
+const LimiteStore = require('../services/limiteStore');
 
 const base = {
-  standardHeaders: true,
+  standardHeaders: 'draft-7',
   legacyHeaders: false,
-  skip: () => env.isTest,
+  passOnStoreError: false,
+  skip: (req) => env.isTest || req.method === 'OPTIONS',
   handler: (req, res) => {
     res
       .status(429)
@@ -12,18 +14,27 @@ const base = {
   },
 };
 
+const geralLimiter = rateLimit({
+  ...base,
+  windowMs: 60_000,
+  limit: 120,
+  store: new LimiteStore('geral'),
+});
+
 const authLimiter = rateLimit({
   ...base,
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60_000,
   limit: 20,
-  keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${req.baseUrl}${req.path}`,
+  store: new LimiteStore('autenticacao'),
+  keyGenerator: (req) => ipKeyGenerator(req.ip),
 });
 
 const iaLimiter = rateLimit({
   ...base,
-  windowMs: 60 * 1000,
+  windowMs: 60_000,
   limit: 15,
+  store: new LimiteStore('ia'),
   keyGenerator: (req) => req.user.id,
 });
 
-module.exports = { authLimiter, iaLimiter };
+module.exports = { geralLimiter, authLimiter, iaLimiter };

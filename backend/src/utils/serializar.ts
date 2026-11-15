@@ -1,4 +1,4 @@
-// Fila por recurso neste processo; para varias instancias, use transacoes no banco.
+
 const filas = new Map<string, Promise<void>>();
 
 async function serializar<T>(chave: string, operacao: () => Promise<T>): Promise<T> {

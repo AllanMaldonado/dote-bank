@@ -4,15 +4,14 @@ Use Node.js 22 ou 24, npm e Docker Compose. Os exemplos abaixo usam PowerShell 7
 
 ## Executar o projeto inteiro
 
-Na raiz do repositório, copie os arquivos de exemplo apenas na primeira configuração.
+Na raiz do repositório, copie o arquivo de exemplo apenas na primeira configuração.
 
 ~~~powershell
 if (!(Test-Path .env)) { Copy-Item .env.example .env }
-if (!(Test-Path backend/.env)) { Copy-Item backend/.env.example backend/.env }
 node -p "require('node:crypto').randomBytes(32).toString('hex')"
 ~~~
 
-Preencha `JWT_SECRET` no `.env` da raiz com o valor gerado. Suba os serviços com o Compose.
+Preencha `JWT_SECRET` no `.env` da raiz com o valor gerado. Esse é o único arquivo local de configuração, compartilhado pela API, pelo Vite e pelo Compose. As seções de SMTP e Gemini são opcionais. Deixe `FRONTEND_URL` e `VITE_API_URL` vazias para usar os endereços locais automáticos. Suba os serviços com o Compose.
 
 ~~~powershell
 docker compose up -d --build --wait

@@ -3,7 +3,7 @@ import { after, test } from 'node:test';
 import { createServer } from 'vite';
 import { createPinia, setActivePinia } from 'pinia';
 
-// Vite carrega os mesmos módulos TypeScript usados pela aplicação.
+
 const vite = await createServer({
   configFile: false,
   optimizeDeps: { noDiscovery: true, include: [] },
