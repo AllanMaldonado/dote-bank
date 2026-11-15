@@ -11,7 +11,7 @@
       <polygon v-for="p in PECAS" :key="p" :points="p" />
     </svg>
     <span v-if="variante === 'completo'" class="dote-logotipo-nome" :style="{ fontSize: `${Number(altura) * 0.9}px` }" aria-hidden="true"
-      >DOTE</span
+      >{{ nome }}</span
     >
   </span>
 </template>
@@ -26,6 +26,7 @@ const PECAS = [
 defineProps({
   variante: { type: String, default: 'simbolo', validator: (v) => ['simbolo', 'completo'].includes(String(v)) },
   altura: { type: [Number, String], default: 28 },
+  nome: { type: String, default: 'DOTE' },
   alt: { type: String, default: 'DOTE' },
 });
 </script>

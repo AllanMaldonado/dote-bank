@@ -85,7 +85,7 @@ function destinoPermitido(to, usuario) {
 router.beforeEach(async (to) => destinoPermitido(to, await useAuthStore().restaurar()));
 
 router.afterEach((to) => {
-  document.title = `${to.meta.titulo ?? 'DOTE'} · DOTE`;
+  document.title = to.meta.acesso === 'landing' ? 'DOTE BANK · Seu banco digital' : `${to.meta.titulo ?? 'DOTE'} · DOTE`;
   useContaStore()
     .atualizar(useAuthStore().user)
     .catch(() => {});

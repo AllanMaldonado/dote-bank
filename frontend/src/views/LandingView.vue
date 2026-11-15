@@ -3,7 +3,7 @@
   <div class="dote-landing">
     <section class="dote-quadro dote-quadro--hero">
       <header class="dote-topo">
-        <router-link to="/" aria-label="DOTE, início"><MarcaDote :altura="30" /></router-link>
+        <router-link to="/" aria-label="DOTE BANK, início"><MarcaDote :altura="30" alt="DOTE BANK" /></router-link>
         <v-btn v-if="auth.user" :to="minhaConta" variant="text" class="dote-minha-conta" aria-label="Minha conta">
           <span class="dote-minha-conta-texto">Minha conta</span>
           <v-avatar color="neon-950" size="36" class="ml-2">
@@ -15,7 +15,7 @@
 
       <div class="dote-hero">
         <div class="dote-hero-coluna">
-          <h1 class="dote-hero-titulo dote-cursor dote-entra" style="--atraso: 0ms">DOTE</h1>
+          <h1 class="dote-hero-titulo dote-cursor dote-entra" style="--atraso: 0ms">DOTE BANK</h1>
           <p class="dote-hero-texto dote-entra" style="--atraso: 120ms">
             Seus pontos rendendo de verdade: envie transferências na hora, guarde em caixinhas e deixe o Diamante cuidar do
             resto.
@@ -58,13 +58,13 @@
       </div>
 
       <button type="button" class="dote-descer" @click="irParaRecursos">
-        conheça o DOTE
+        conheça o DOTE BANK
         <v-icon icon="mdi-chevron-down" size="18" />
       </button>
     </section>
 
     <section id="recursos" class="dote-quadro dote-quadro--recursos">
-      <h2 class="dote-title">&gt; o que o DOTE faz</h2>
+      <h2 class="dote-title">&gt; o que o DOTE BANK faz</h2>
       <div class="dote-recursos">
         <div v-for="(r, i) in RECURSOS" :key="r.titulo" class="dote-recurso" :style="{ '--i': i }">
           <span class="dote-recurso-icone">
@@ -87,7 +87,7 @@
       </ol>
 
       <footer class="dote-rodape">
-        <MarcaDote variante="completo" :altura="16" />
+        <MarcaDote variante="completo" nome="DOTE BANK" alt="DOTE BANK" :altura="16" />
         <span>&copy; 2026</span>
       </footer>
     </section>
