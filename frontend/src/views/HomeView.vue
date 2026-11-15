@@ -11,7 +11,7 @@
       <section class="dote-painel">
         <SaldoCard :saldo-centavos="conta.resumo?.saldoCentavos ?? null" />
         <div class="dote-operacoes">
-          <v-btn color="primary" class="dote-cta" :prepend-icon="IconePix" to="/pix">Transferir</v-btn>
+          <v-btn color="primary" class="dote-cta" :prepend-icon="IconeTransferencia" to="/transferencias">Transferir</v-btn>
           <v-btn variant="text" color="neon-300" prepend-icon="mdi-receipt-text-outline" to="/extrato">Extrato</v-btn>
         </div>
       </section>
@@ -62,7 +62,7 @@ import { caixinhasApi } from '../api/caixinhas';
 import { transacoesApi } from '../api/transacoes';
 import ExtratoItem from '../components/ExtratoItem.vue';
 import FundoMatrix from '../components/FundoMatrix.vue';
-import IconePix from '../components/IconePix.vue';
+import IconeTransferencia from '../components/IconeTransferencia.vue';
 import SaldoCard from '../components/SaldoCard.vue';
 import { aoAbrirTela } from '../composables/aoAbrirTela';
 import { useAcao } from '../composables/useAcao';

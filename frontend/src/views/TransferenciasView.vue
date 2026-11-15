@@ -1,8 +1,8 @@
 <template>
   <div>
-    <AbasSecao :abas="ABAS_PIX" />
-    <div class="dote-pix-conteudo">
-      <v-card class="pa-6 dote-pix-enviar">
+    <AbasSecao :abas="ABAS_TRANSFERENCIAS" />
+    <div class="dote-transferencia-conteudo">
+      <v-card class="pa-6 dote-transferencia-enviar">
         <div class="d-flex flex-wrap align-center justify-space-between ga-2 mb-6">
           <h2 class="dote-subtitulo">{{ destino ? 'Quanto você quer enviar?' : 'Para quem você quer enviar?' }}</h2>
           <span class="text-muted text-body-2"
@@ -65,15 +65,15 @@
         </v-form>
 
         <div class="text-body-2 text-muted mt-6">
-          Para receber, cadastre suas <router-link to="/pix/chaves" class="text-neon-600">chaves de transferência</router-link>.
+          Para receber, cadastre suas <router-link to="/transferencias/chaves" class="text-neon-600">chaves de transferência</router-link>.
         </div>
       </v-card>
 
-      <div class="dote-pix-lateral">
+      <div class="dote-transferencia-lateral">
         <v-card class="pa-6">
           <div class="d-flex flex-wrap align-center justify-space-between ga-2 mb-4">
             <h2 class="dote-subtitulo">Contatos</h2>
-            <router-link to="/pix/contatos" class="text-neon-600 text-body-2">Gerenciar</router-link>
+            <router-link to="/transferencias/contatos" class="text-neon-600 text-body-2">Gerenciar</router-link>
           </div>
           <div v-if="contatos.length" class="d-flex flex-wrap ga-2">
             <v-chip
@@ -107,7 +107,7 @@
         </v-card>
 
         <section id="agendados" ref="agendados" aria-label="Transferências agendadas">
-          <PixAgendamentos />
+          <AgendamentosTransferencias />
         </section>
       </div>
     </div>
@@ -121,14 +121,14 @@ import { useRoute, useRouter } from 'vue-router';
 import { contatosApi } from '../api/contatos';
 import AbasSecao from '../components/AbasSecao.vue';
 import CampoValor from '../components/CampoValor.vue';
-import PixAgendamentos from '../components/PixAgendamentos.vue';
+import AgendamentosTransferencias from '../components/AgendamentosTransferencias.vue';
 import { aoAbrirTela } from '../composables/aoAbrirTela';
 import { useAcao } from '../composables/useAcao';
-import { pixApi } from '../api/pix';
+import { transferenciasApi } from '../api/transferencias';
 import { useContaStore } from '../stores/conta';
 import { CATEGORIAS, ICONES_CATEGORIAS, TIPOS_CHAVE as tiposChave } from '../utils/constantes';
 import { formatMoney } from '../utils/formatMoney';
-import { ABAS_PIX } from '../utils/secoes';
+import { ABAS_TRANSFERENCIAS } from '../utils/secoes';
 
 const router = useRouter();
 const route = useRoute();
@@ -173,7 +173,7 @@ async function salvarContato() {
 }
 
 async function consultar() {
-  const d = await executar(() => pixApi.consultarDestinatario(chave.value));
+  const d = await executar(() => transferenciasApi.consultarDestinatario(chave.value));
   if (d?.propria) erro.value = 'Essa chave é sua. Escolha a de outra pessoa.';
   else if (d) destino.value = d;
 }
@@ -190,7 +190,7 @@ function voltar() {
 
 async function enviar() {
   const t = await executar(() =>
-    pixApi.enviar({
+    transferenciasApi.enviar({
       chave: destino.value.chave,
       valorCentavos: valorCentavos.value,
       categoria: categoria.value,
@@ -202,12 +202,12 @@ async function enviar() {
 </script>
 
 <style scoped>
-.dote-pix-conteudo {
+.dote-transferencia-conteudo {
   display: grid;
   align-items: start;
   gap: 24px;
 }
-.dote-pix-lateral {
+.dote-transferencia-lateral {
   display: grid;
   gap: 24px;
 }
@@ -215,7 +215,7 @@ async function enviar() {
   scroll-margin-top: 84px;
 }
 @media (min-width: 960px) {
-  .dote-pix-conteudo {
+  .dote-transferencia-conteudo {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     gap: 28px;
   }

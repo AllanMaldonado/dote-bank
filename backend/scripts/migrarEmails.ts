@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 const { conectarBanco, desconectarBanco } = require('../src/config/database');
-const ChavePix = require('../src/models/ChavePix');
+const ChaveTransferencia = require('../src/models/ChaveTransferencia');
 const Config = require('../src/models/Config');
 const Contato = require('../src/models/Contato');
-const PixRecorrente = require('../src/models/PixRecorrente');
+const TransferenciaRecorrente = require('../src/models/TransferenciaRecorrente');
 const User = require('../src/models/User');
 
 const ACADEMICO = /@[^\s@]+\.edu(\.br)?$/;
@@ -18,9 +18,9 @@ async function main() {
     let novo = `${local}@${DOMINIO}`;
     for (let n = 2; await User.exists({ email: novo, _id: { $ne: _id } }); n++) novo = `${local}${n}@${DOMINIO}`;
     await User.updateOne({ _id }, { $set: { email: novo } });
-    await ChavePix.updateMany({ usuarioId: _id, tipo: 'email', valor: email }, { $set: { valor: novo } });
+    await ChaveTransferencia.updateMany({ usuarioId: _id, tipo: 'email', valor: email }, { $set: { valor: novo } });
     await Contato.updateMany({ chaveDestino: email }, { $set: { chaveDestino: novo } });
-    await PixRecorrente.updateMany({ chaveDestino: email }, { $set: { chaveDestino: novo } });
+    await TransferenciaRecorrente.updateMany({ chaveDestino: email }, { $set: { chaveDestino: novo } });
     console.log(`  ${email} → ${novo}`);
     migrados++;
   }

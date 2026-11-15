@@ -31,7 +31,7 @@ const centavos = z
   .max(100_000_000_00, 'valorCentavos excede o limite');
 
 const categoria = z.enum(CATEGORIAS, { error: `categoria inválida. Use: ${CATEGORIAS.join(', ')}` });
-const chavePix = z
+const chaveTransferência = z
   .string({ error: 'Informe a chave de transferência' })
   .trim()
   .min(1, 'Informe a chave de transferência');
@@ -71,7 +71,7 @@ module.exports = {
   centavos,
   categoria,
   categoriaOpcional,
-  chavePix,
+  chaveTransferência,
   texto,
   dataIso,
   paginacaoQuery,

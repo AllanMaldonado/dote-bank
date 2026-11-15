@@ -53,7 +53,7 @@
       <h1 v-if="!route.meta.inicio && !route.meta.semTitulo" class="dote-titulo-pagina">{{ route.meta.titulo }}</h1>
 
       <router-view v-slot="{ Component, route: rota }">
-        <keep-alive :max="12" exclude="PixView">
+        <keep-alive :max="12" exclude="TransferenciasView">
           <component :is="Component" :key="rota.path" :class="{ 'dote-entrada-tela': secaoAtual !== '/extrato' }" />
         </keep-alive>
       </router-view>
@@ -73,7 +73,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import BotaoNotificacoes from '../components/BotaoNotificacoes.vue';
-import IconePix from '../components/IconePix.vue';
+import IconeTransferencia from '../components/IconeTransferencia.vue';
 import MarcaDote from '../components/MarcaDote.vue';
 import { useAuthStore } from '../stores/auth';
 import { usePreferenciasStore } from '../stores/preferencias';
@@ -82,7 +82,7 @@ import DiamanteModal from '../components/DiamanteModal.vue';
 
 const ITENS = [
   { titulo: 'Início', para: '/inicio', icone: 'mdi-home-variant-outline' },
-  { titulo: 'Transferências', para: '/pix', icone: IconePix },
+  { titulo: 'Transferências', para: '/transferencias', icone: IconeTransferencia },
   { titulo: 'Caixinhas', para: '/caixinhas', icone: 'mdi-piggy-bank-outline' },
   { titulo: 'Extrato', para: '/extrato', icone: 'mdi-receipt-text-outline' },
 ];
@@ -114,9 +114,9 @@ function voltar() {
 
 const CAMINHOS = [
   '/inicio',
-  '/pix',
-  '/pix/contatos',
-  '/pix/chaves',
+  '/transferencias',
+  '/transferencias/contatos',
+  '/transferencias/chaves',
   '/extrato',
   '/extrato/relatorio',
   '/caixinhas',
@@ -142,7 +142,7 @@ onMounted(() => {
 .dote-coluna {
   max-width: 640px;
   margin: 0 auto;
-  padding: 8px 16px 148px;  
+  padding: 8px 16px 148px;
 }
 .dote-coluna--inicio {
   padding-top: 0;
@@ -297,7 +297,7 @@ onMounted(() => {
     right: 32px;
   }
   .dote-coluna {
-    padding-bottom: 80px;  
+    padding-bottom: 80px;
   }
   .dote-flutuante.v-btn {
     bottom: 20px;

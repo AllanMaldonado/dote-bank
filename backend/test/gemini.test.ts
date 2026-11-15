@@ -56,6 +56,56 @@ test('retorna análise por regras quando o Gemini devolve texto sem as seções'
   t.mock.method(console, 'warn', () => {});
   const r = await iaService.analisarRelatorio(relatorio);
   assert.equal(r.fonte, 'regras');
+  assert.equal(r.motivo, 'resposta_invalida');
   assert.match(r.texto, /^Resumo:/);
   assert.match(r.texto, /Moradia concentrou 80%/);
+});
+
+for (const [status, motivo] of [
+  [400, 'requisicao_recusada'],
+  [401, 'credencial_recusada'],
+  [403, 'credencial_recusada'],
+  [404, 'modelo_indisponivel'],
+  [429, 'limite_provedor'],
+  [503, 'provedor_indisponivel'],
+]) {
+  test(`identifica a falha HTTP ${status} sem expor a resposta do provedor`, async (t) => {
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: false, status }));
+    const avisos = t.mock.method(console, 'warn', () => {});
+    const r = await iaService.analisarRelatorio(relatorio);
+    assert.equal(r.fonte, 'regras');
+    assert.equal(r.motivo, motivo);
+    assert.match(r.aviso, /sem IA/);
+    assert.doesNotMatch(JSON.stringify([r, avisos.mock.calls]), /chave-ficticia/);
+  });
+}
+
+test('reserva 25 segundos ao modelo único e identifica tempo esgotado', async (t) => {
+  const timeout = t.mock.method(AbortSignal, 'timeout', () => new AbortController().signal);
+  t.mock.method(globalThis, 'fetch', async () => {
+    throw new DOMException('Tempo excedido', 'TimeoutError');
+  });
+  t.mock.method(console, 'warn', () => {});
+  const r = await iaService.analisarRelatorio(relatorio);
+  assert.equal(r.motivo, 'tempo_esgotado');
+  assert.match(r.aviso, /demorou/);
+  assert.ok(timeout.mock.calls[0].arguments[0] > 24_000);
+  assert.ok(timeout.mock.calls[0].arguments[0] <= 25_000);
+});
+
+test('usa um novo sinal para tentar o próximo modelo após timeout', async (t) => {
+  env.gemini.modelos = ['modelo-a', 'modelo-b'];
+  t.after(() => { env.gemini.modelos = ['gemini-3.6-flash']; });
+  const sinais = [];
+  t.mock.method(globalThis, 'fetch', async (url, opcoes) => {
+    sinais.push(opcoes.signal);
+    if (sinais.length === 1) throw new DOMException('Tempo excedido', 'TimeoutError');
+    return retorno(analiseValida);
+  });
+  t.mock.method(console, 'warn', () => {});
+  const r = await iaService.analisarRelatorio(relatorio);
+  assert.equal(r.fonte, 'gemini');
+  assert.equal(r.modelo, 'modelo-b');
+  assert.notEqual(sinais[0], sinais[1]);
+  assert.equal(sinais[1].aborted, false);
 });

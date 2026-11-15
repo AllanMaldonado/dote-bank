@@ -114,13 +114,13 @@ import CampoValor from './CampoValor.vue';
 import DialogoConfirmar from './DialogoConfirmar.vue';
 import { aoAbrirTela } from '../composables/aoAbrirTela';
 import { useAcao } from '../composables/useAcao';
-import { pixApi } from '../api/pix';
+import { transferenciasApi } from '../api/transferencias';
 import { useToastStore } from '../stores/toast';
 import { CATEGORIAS } from '../utils/constantes';
 import { formatData } from '../utils/datas';
 import { formatMoney } from '../utils/formatMoney';
 
-const DIAS = Array.from({ length: 28 }, (_, i) => i + 1);  
+const DIAS = Array.from({ length: 28 }, (_, i) => i + 1);
 const recorrencias = ref([]);
 const aExcluir = ref(null);
 const form = reactive({
@@ -135,7 +135,7 @@ const form = reactive({
 const toast = useToastStore();
 const { carregando, erro, executar } = useAcao();
 
-const carregar = () => executar(async () => (recorrencias.value = (await pixApi.listarAgendamentos()).itens));
+const carregar = () => executar(async () => (recorrencias.value = (await transferenciasApi.listarAgendamentos()).itens));
 
 function abrir(r = undefined) {
   erro.value = '';
@@ -159,7 +159,7 @@ async function salvar() {
     categoria: form.categoria,
   };
   const ok = await executar(() =>
-    form.id ? pixApi.atualizarAgendamento(form.id, dados) : pixApi.criarAgendamento(dados),
+    form.id ? transferenciasApi.atualizarAgendamento(form.id, dados) : transferenciasApi.criarAgendamento(dados),
   );
   if (!ok) return;
   form.aberto = false;
@@ -168,13 +168,13 @@ async function salvar() {
 }
 
 async function alternar(r, ativa) {
-  const ok = await executar(() => pixApi.definirAgendamentoAtivo(r.id, ativa));
+  const ok = await executar(() => transferenciasApi.definirAgendamentoAtivo(r.id, ativa));
   if (ok !== undefined) toast.mostrar(ativa ? 'Agendamento ativado' : 'Agendamento pausado');
   carregar();
 }
 
 async function excluir() {
-  const ok = await executar(() => pixApi.excluirAgendamento(aExcluir.value.id));
+  const ok = await executar(() => transferenciasApi.excluirAgendamento(aExcluir.value.id));
   if (ok !== undefined) toast.mostrar('Agendamento excluído');
   aExcluir.value = null;
   carregar();

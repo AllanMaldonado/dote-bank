@@ -56,7 +56,7 @@ cliente.interceptors.response.use(
 export const http = {
   get: <T = any>(url: string, config?: AxiosRequestConfig) => cliente.get<unknown, T>(url, config),
   delete: <T = any>(url: string) => cliente.delete<unknown, T>(url),
-  post: <T = any>(url: string, dados?: unknown) => cliente.post<unknown, T>(url, dados),
+  post: <T = any>(url: string, dados?: unknown, config?: AxiosRequestConfig) => cliente.post<unknown, T>(url, dados, config),
   put: <T = any>(url: string, dados?: unknown) => cliente.put<unknown, T>(url, dados),
   patch: <T = any>(url: string, dados?: unknown) => cliente.patch<unknown, T>(url, dados),
 };

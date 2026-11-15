@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const { TIPOS_CHAVE } = require('./constantes');
+const { colecaoChaves } = require('../utils/compatibilidadeTransferencias');
 
-const chavePixSchema = new mongoose.Schema(
+const chaveTransferenciaSchema = new mongoose.Schema(
   {
     usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     tipo: { type: String, enum: TIPOS_CHAVE, required: true },
@@ -10,4 +11,4 @@ const chavePixSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model('ChavePix', chavePixSchema, 'chavespix');
+module.exports = mongoose.model('ChaveTransferencia', chaveTransferenciaSchema, colecaoChaves);

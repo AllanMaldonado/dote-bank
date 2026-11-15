@@ -1,5 +1,5 @@
 const crypto = require('node:crypto');
-const ChavePix = require('../models/ChavePix');
+const ChaveTransferencia = require('../models/ChaveTransferencia');
 const { LIMITE_CHAVES } = require('../models/constantes');
 const { badRequest, conflict, notFound, unprocessable } = require('../utils/AppError');
 const { somenteDigitos, uuidValido } = require('../utils/validacao');
@@ -26,13 +26,13 @@ const VALOR_POR_TIPO = {
   aleatoria: () => crypto.randomUUID(),
 };
 
-class ChavePixService {
+class ChaveTransferenciaService {
   listar(usuarioId) {
-    return ChavePix.find({ usuarioId }).sort({ createdAt: 1 }).lean();
+    return ChaveTransferencia.find({ usuarioId }).sort({ createdAt: 1 }).lean();
   }
 
   async obter(usuarioId, id) {
-    const chave = await ChavePix.findOne({ _id: id, usuarioId });
+    const chave = await ChaveTransferencia.findOne({ _id: id, usuarioId });
     if (!chave) throw notFound('Chave não encontrada');
     return chave;
   }
@@ -40,13 +40,13 @@ class ChavePixService {
   async criar(usuario, { tipo }) {
     const valor = VALOR_POR_TIPO[tipo](usuario);
     const [total, existe] = await Promise.all([
-      ChavePix.countDocuments({ usuarioId: usuario._id }),
-      ChavePix.exists({ valor }),
+      ChaveTransferencia.countDocuments({ usuarioId: usuario._id }),
+      ChaveTransferencia.exists({ valor }),
     ]);
     if (total >= LIMITE_CHAVES)
       throw unprocessable(`Limite de ${LIMITE_CHAVES} chaves por conta`, 'limite_chaves');
     if (existe) throw conflict('Esta chave já está cadastrada');
-    return ChavePix.create({ usuarioId: usuario._id, tipo, valor });
+    return ChaveTransferencia.create({ usuarioId: usuario._id, tipo, valor });
   }
 
   async regenerarAleatoria(usuarioId, id) {
@@ -64,11 +64,11 @@ class ChavePixService {
   }
 
   excluirTodas(usuarioId) {
-    return ChavePix.deleteMany({ usuarioId });
+    return ChaveTransferencia.deleteMany({ usuarioId });
   }
 
   async sincronizarComCadastro(usuario) {
-    await ChavePix.deleteMany({
+    await ChaveTransferencia.deleteMany({
       usuarioId: usuario._id,
       $or: [
         { tipo: 'email', valor: { $ne: usuario.email } },
@@ -89,17 +89,17 @@ class ChavePixService {
   async resolverDestino(entrada: string, { origemId }: { origemId?: unknown } = {}) {
     const candidatos = candidatosDaChave(entrada);
     if (!candidatos.length) throw badRequest('Informe a chave de transferência');
-    const chave = await ChavePix.findOne({ valor: { $in: candidatos } })
+    const chave = await ChaveTransferencia.findOne({ valor: { $in: candidatos } })
       .populate('usuarioId', 'nome cpf status')
       .lean();
     if (!chave) throw notFound('Chave de transferência não encontrada', 'chave_nao_encontrada');
     const destino = chave.usuarioId;
     if (destino?.status !== 'ativo') throw this.erroDestinoIndisponivel();
     if (origemId && String(destino._id) === String(origemId)) {
-      throw unprocessable('Não é possível transferir para si mesmo', 'pix_para_si');
+      throw unprocessable('Não é possível transferir para si mesmo', 'transferencia_para_si');
     }
     return { chave, destino };
   }
 }
 
-module.exports = new ChavePixService();
+module.exports = new ChaveTransferenciaService();

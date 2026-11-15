@@ -82,8 +82,8 @@ import { useToastStore } from '../stores/toast';
 import { formatData } from '../utils/datas';
 
 const ICONES = {
-  pix_recebido: 'mdi-arrow-bottom-left',
-  pix_enviado: 'mdi-arrow-top-right',
+  transferencia_recebida: 'mdi-arrow-bottom-left',
+  transferencia_enviada: 'mdi-arrow-top-right',
   recorrencia_executada: 'mdi-calendar-check-outline',
   recorrencia_falhou: 'mdi-calendar-alert-outline',
   rendimento: 'mdi-chart-line',
@@ -93,9 +93,9 @@ const ICONES = {
   conta_desbloqueada: 'mdi-lock-open-outline',
 };
 const CORES = {
-  pix_enviado: 'error',
+  transferencia_enviada: 'error',
   recorrencia_executada: 'error',
-  pix_recebido: 'success',
+  transferencia_recebida: 'success',
   recorrencia_falhou: 'warning',
   conta_bloqueada: 'error',
 };
@@ -135,7 +135,7 @@ async function carregar() {
     total.value = r.total;
     naoLidas.value = r.naoLidas;
   });
-  await contaStore.atualizar(auth.user).catch(() => {});  
+  await contaStore.atualizar(auth.user).catch(() => {});
 }
 
 async function abrir(n) {

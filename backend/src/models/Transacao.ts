@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const { CATEGORIAS } = require('./constantes');
+const { tiposTransferencia } = require('../utils/compatibilidadeTransferencias');
 
 const TIPOS_TRANSACAO = [
   'deposito_inicial',
-  'pix',
+  ...tiposTransferencia,
   'recorrencia',
   'rendimento',
   'caixinha_aplicacao',
@@ -12,7 +13,7 @@ const TIPOS_TRANSACAO = [
 
 const transacaoSchema = new mongoose.Schema(
   {
-    codigo: { type: String, required: true, unique: true },  
+    codigo: { type: String, required: true, unique: true },
     tipo: { type: String, enum: TIPOS_TRANSACAO, required: true },
     status: { type: String, enum: ['concluida', 'falhou'], default: 'concluida' },
     origemId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -23,9 +24,9 @@ const transacaoSchema = new mongoose.Schema(
     chaveDestino: String,
     caixinhaId: { type: mongoose.Schema.Types.ObjectId, ref: 'Caixinha' },
     caixinhaNome: String,
-    recorrenciaId: { type: mongoose.Schema.Types.ObjectId, ref: 'PixRecorrente' },
+    recorrenciaId: { type: mongoose.Schema.Types.ObjectId, ref: 'TransferenciaRecorrente' },
     motivoFalha: String,
-    data: { type: Date, required: true },  
+    data: { type: Date, required: true },
   },
   { timestamps: true },
 );

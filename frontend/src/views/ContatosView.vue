@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-btn variant="text" color="neon-600" prepend-icon="mdi-chevron-left" to="/pix" class="mb-3">
+    <v-btn variant="text" color="neon-600" prepend-icon="mdi-chevron-left" to="/transferencias" class="mb-3">
       Voltar ao envio
     </v-btn>
     <v-card class="pa-5 mb-4">
@@ -35,7 +35,7 @@
               size="small"
               color="neon-600"
               :aria-label="`Transferir para ${c.apelido}`"
-              :to="{ path: '/pix', query: { chave: c.chave } }"
+              :to="{ path: '/transferencias', query: { chave: c.chave } }"
             />
             <v-btn
               icon="mdi-pencil-outline"

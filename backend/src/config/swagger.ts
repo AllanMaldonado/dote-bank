@@ -27,19 +27,19 @@ const ROTAS: Rota[] = [
   ['patch', '/conta/perfil', 'Atualiza os dados do perfil', true],
   ['put', '/conta/senha', 'Troca a senha e devolve novo token', true],
 
-  ['get', '/pix/destinatario', 'Prévia de quem recebe a chave de transferência', true],
-  ['post', '/pix/transferencias', 'Envia uma transferência', true],
-  ['get', '/pix/chaves', 'Lista as chaves de transferência do cliente', true],
-  ['post', '/pix/chaves', 'Cria uma chave de transferência', true],
-  ['get', '/pix/chaves/:id', 'Obtém uma chave de transferência', true],
-  ['put', '/pix/chaves/:id', 'Atualiza a chave (regenera o valor aleatório)', true],
-  ['delete', '/pix/chaves/:id', 'Exclui uma chave de transferência', true],
-  ['get', '/pix/agendamentos', 'Lista os Transferências agendadas (mensais)', true],
-  ['post', '/pix/agendamentos', 'Cria um Transferência agendada', true],
-  ['get', '/pix/agendamentos/:id', 'Obtém um Transferência agendada', true],
-  ['put', '/pix/agendamentos/:id', 'Atualiza um Transferência agendada', true],
-  ['patch', '/pix/agendamentos/:id/ativa', 'Ativa ou pausa um Transferência agendada', true],
-  ['delete', '/pix/agendamentos/:id', 'Exclui um Transferência agendada', true],
+  ['get', '/transferencias/destinatario', 'Prévia de quem recebe a chave de transferência', true],
+  ['post', '/transferencias', 'Envia uma transferência', true],
+  ['get', '/transferencias/chaves', 'Lista as chaves de transferência do cliente', true],
+  ['post', '/transferencias/chaves', 'Cria uma chave de transferência', true],
+  ['get', '/transferencias/chaves/:id', 'Obtém uma chave de transferência', true],
+  ['put', '/transferencias/chaves/:id', 'Atualiza a chave (regenera o valor aleatório)', true],
+  ['delete', '/transferencias/chaves/:id', 'Exclui uma chave de transferência', true],
+  ['get', '/transferencias/agendamentos', 'Lista as transferências agendadas (mensais)', true],
+  ['post', '/transferencias/agendamentos', 'Cria uma transferência agendada', true],
+  ['get', '/transferencias/agendamentos/:id', 'Obtém uma transferência agendada', true],
+  ['put', '/transferencias/agendamentos/:id', 'Atualiza uma transferência agendada', true],
+  ['patch', '/transferencias/agendamentos/:id/ativa', 'Ativa ou pausa uma transferência agendada', true],
+  ['delete', '/transferencias/agendamentos/:id', 'Exclui uma transferência agendada', true],
 
   ['get', '/caixinhas', 'Lista as caixinhas', true],
   ['post', '/caixinhas', 'Cria uma caixinha', true],
@@ -86,7 +86,7 @@ const TAGS = {
   saude: 'Sistema',
   auth: 'Autenticação',
   conta: 'Conta',
-  pix: 'Transferência',
+  transferencias: 'Transferências',
   caixinhas: 'Caixinhas',
   contatos: 'Contatos',
   notificacoes: 'Notificações',
@@ -98,9 +98,9 @@ const TAGS = {
 
 const CRIA = new Set([
   '/auth/register',
-  '/pix/transferencias',
-  '/pix/chaves',
-  '/pix/agendamentos',
+  '/transferencias',
+  '/transferencias/chaves',
+  '/transferencias/agendamentos',
   '/caixinhas',
   '/contatos',
 ]);
@@ -127,16 +127,16 @@ const CAIXINHA = {
   nome: { type: 'string', minLength: 1, maxLength: 40 },
   metaCentavos: { ...CENTAVOS, nullable: true },
 };
-const PIX = {
+const TRANSFERENCIA = {
   chave: TEXTO,
   valorCentavos: CENTAVOS,
   categoria: { ...CATEGORIA, default: 'Outros' },
   descricao: { type: 'string', maxLength: 140 },
 };
 const AGENDAMENTO = {
-  ...PIX,
+  ...TRANSFERENCIA,
   diaDoMes: { type: 'integer', minimum: 1, maximum: 28 },
-  descricao: { ...PIX.descricao, minLength: 1 },
+  descricao: { ...TRANSFERENCIA.descricao, minLength: 1 },
 };
 const CONTATO = { apelido: { type: 'string', minLength: 1, maxLength: 40 }, chave: TEXTO };
 const PAGINACAO = {
@@ -150,11 +150,11 @@ const CORPOS: Record<string, Schema> = {
   '/auth/reset-password': obj(['token', 'novaSenha'], { token: TEXTO, novaSenha: SENHA }),
   '/conta/perfil': obj([], PERFIL),
   '/conta/senha': obj(['senhaAtual', 'novaSenha'], { senhaAtual: TEXTO, novaSenha: SENHA }),
-  '/pix/transferencias': obj(['chave', 'valorCentavos'], PIX),
-  '/pix/chaves': obj(['tipo'], { tipo: { type: 'string', enum: TIPOS_CHAVE } }),
-  '/pix/agendamentos': obj(['chave', 'valorCentavos', 'diaDoMes', 'descricao'], AGENDAMENTO),
-  '/pix/agendamentos/:id': obj([], { ...AGENDAMENTO, categoria: CATEGORIA, ativa: { type: 'boolean' } }),
-  '/pix/agendamentos/:id/ativa': obj(['ativa'], { ativa: { type: 'boolean' } }),
+  '/transferencias': obj(['chave', 'valorCentavos'], TRANSFERENCIA),
+  '/transferencias/chaves': obj(['tipo'], { tipo: { type: 'string', enum: TIPOS_CHAVE } }),
+  '/transferencias/agendamentos': obj(['chave', 'valorCentavos', 'diaDoMes', 'descricao'], AGENDAMENTO),
+  '/transferencias/agendamentos/:id': obj([], { ...AGENDAMENTO, categoria: CATEGORIA, ativa: { type: 'boolean' } }),
+  '/transferencias/agendamentos/:id/ativa': obj(['ativa'], { ativa: { type: 'boolean' } }),
   '/caixinhas': obj(['nome'], CAIXINHA),
   '/caixinhas/:id': obj([], CAIXINHA),
   '/caixinhas/:id/aplicar': obj(['valorCentavos'], { valorCentavos: CENTAVOS }),
@@ -190,7 +190,7 @@ const QUERY: Record<string, Record<string, Schema>> = {
     categoria: CATEGORIA,
     busca: { type: 'string', maxLength: 80 },
   },
-  '/pix/destinatario': { chave: TEXTO },
+  '/transferencias/destinatario': { chave: TEXTO },
   '/admin/clientes': { ...PAGINACAO, status: { type: 'string', enum: STATUS }, busca: { type: 'string' } },
 };
 
@@ -223,7 +223,7 @@ for (const [metodo, rota, resumo, protegida] of ROTAS) {
     schema: { type: 'string' },
   }));
   for (const [nome, schema] of Object.entries(QUERY[rota] || {})) {
-    parametros.push({ name: nome, in: 'query', required: rota === '/pix/destinatario', schema });
+    parametros.push({ name: nome, in: 'query', required: rota === '/transferencias/destinatario', schema });
   }
 
   const caminho = rota.replace(/:(\w+)/g, '{$1}');

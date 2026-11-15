@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { createServer } from 'vite';
 import { createPinia, setActivePinia } from 'pinia';
+import { createRouter, createMemoryHistory } from 'vue-router';
 
 
 const vite = await createServer({
@@ -16,6 +17,7 @@ const { useListaPaginada } = await vite.ssrLoadModule('/src/composables/useLista
 const { useContaStore } = await vite.ssrLoadModule('/src/stores/conta.ts');
 const { contaApi } = await vite.ssrLoadModule('/src/api/conta.ts');
 const { celular } = await vite.ssrLoadModule('/src/utils/regrasForm.ts');
+const { rotasAnteriores } = await vite.ssrLoadModule('/src/router/compatibilidade.ts');
 function pendente() {
   let resolve, reject;
   const promise = new Promise((ok, erro) => {
@@ -111,4 +113,18 @@ test('celular aceita o mesmo formato exigido pela API', () => {
   assert.equal(celular(''), true);
   assert.notEqual(celular('1833334444'), true);
   assert.notEqual(celular('00999999999'), true);
+});
+
+test('links anteriores abrem transferências e preservam query e hash', async () => {
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [...rotasAnteriores, { path: '/transferencias/:resto(.*)*', component: {} }],
+  });
+  const prefixo = rotasAnteriores[0].path.split('/:')[0];
+  await router.push({ path: prefixo + '/chaves', query: { chave: 'teste' }, hash: '#agendados' });
+  assert.equal(router.currentRoute.value.path, '/transferencias/chaves');
+  assert.deepEqual(router.currentRoute.value.query, { chave: 'teste' });
+  assert.equal(router.currentRoute.value.hash, '#agendados');
+  await router.push(prefixo);
+  assert.equal(router.currentRoute.value.path, '/transferencias');
 });

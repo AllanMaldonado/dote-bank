@@ -23,8 +23,9 @@ const POPULAR_PARTES = [
 ];
 
 const TIPOS_NOTIFICACAO = [
-  'pix_recebido',
-  'pix_enviado',
+  ...require('../utils/compatibilidadeTransferencias').tiposNotificacaoAnteriores,
+  'transferencia_recebida',
+  'transferencia_enviada',
   'recorrencia_executada',
   'recorrencia_falhou',
   'rendimento',
@@ -32,7 +33,7 @@ const TIPOS_NOTIFICACAO = [
   'conta_aprovada',
   'conta_bloqueada',
   'conta_desbloqueada',
-  'orcamento_estourado',  
+  'orcamento_estourado',
 ];
 
 module.exports = {

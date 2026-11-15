@@ -1,7 +1,7 @@
 const { LIMITE_CONTATOS } = require('../models/constantes');
 const Contato = require('../models/Contato');
 const { conflict, notFound, unprocessable } = require('../utils/AppError');
-const chavePixService = require('./chavePixService');
+const chaveTransferenciaService = require('./chaveTransferenciaService');
 
 const erroDuplicado = () => conflict('Esta chave já está nos seus contatos', 'contato_duplicado');
 
@@ -20,7 +20,7 @@ class ContatoService {
     const total = await Contato.countDocuments({ usuarioId });
     if (total >= LIMITE_CONTATOS)
       throw unprocessable(`Limite de ${LIMITE_CONTATOS} contatos`, 'limite_contatos');
-    const destino = await chavePixService.resumirDestino(usuarioId, chave);
+    const destino = await chaveTransferenciaService.resumirDestino(usuarioId, chave);
     if (await Contato.exists({ usuarioId, chaveDestino: destino.chaveDestino })) throw erroDuplicado();
     return Contato.create({ usuarioId, apelido, ...destino });
   }
@@ -29,7 +29,7 @@ class ContatoService {
     const c = await this.obter(usuarioId, id);
     if (apelido !== undefined) c.apelido = apelido;
     if (chave !== undefined) {
-      const destino = await chavePixService.resumirDestino(usuarioId, chave);
+      const destino = await chaveTransferenciaService.resumirDestino(usuarioId, chave);
       if (await Contato.exists({ usuarioId, chaveDestino: destino.chaveDestino, _id: { $ne: c._id } })) {
         throw erroDuplicado();
       }

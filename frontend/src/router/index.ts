@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { definirAoExpirarSessao } from '../api/http';
 import { rotaInicial, useAuthStore } from '../stores/auth';
 import { useContaStore } from '../stores/conta';
+import { rotasAnteriores } from './compatibilidade';
 
 const telas = import.meta.glob<any>(['../views/*View.vue', '!../views/NotificacoesView.vue']);
 const v = (nome: string) => telas[`../views/${nome}.vue`];
@@ -17,6 +18,7 @@ declare module 'vue-router' {
 }
 
 const routes: RouteRecordRaw[] = [
+  ...rotasAnteriores,
   { path: '/', component: v('LandingView'), meta: { acesso: 'landing', titulo: 'Seu banco digital' } },
   { path: '/login', component: v('LoginView'), meta: { acesso: 'publico', titulo: 'Entrar' } },
   { path: '/cadastro', component: v('CadastroView'), meta: { acesso: 'publico', titulo: 'Abrir conta' } },
@@ -25,13 +27,13 @@ const routes: RouteRecordRaw[] = [
   { path: '/aguardando', component: v('AguardandoView'), meta: { acesso: 'pendente', titulo: 'Aguardando aprovação' } },
 
   { path: '/inicio', component: v('HomeView'), meta: { acesso: 'cliente', titulo: 'Início', inicio: true } },
-  { path: '/pix', component: v('PixView'), meta: { acesso: 'cliente', titulo: 'Transferências', semTitulo: true } },
+  { path: '/transferencias', component: v('TransferenciasView'), meta: { acesso: 'cliente', titulo: 'Transferências', semTitulo: true } },
   {
-    path: '/pix/contatos',
+    path: '/transferencias/contatos',
     component: v('ContatosView'),
-    meta: { acesso: 'cliente', titulo: 'Contatos', pai: '/pix' },
+    meta: { acesso: 'cliente', titulo: 'Contatos', pai: '/transferencias' },
   },
-  { path: '/pix/chaves', component: v('ChavesView'), meta: { acesso: 'cliente', titulo: 'Transferências', pai: '/pix', semTitulo: true } },
+  { path: '/transferencias/chaves', component: v('ChavesView'), meta: { acesso: 'cliente', titulo: 'Transferências', pai: '/transferencias', semTitulo: true } },
   { path: '/extrato', component: v('ExtratoView'), meta: { acesso: 'cliente', titulo: 'Extrato', semTitulo: true } },
   {
     path: '/extrato/relatorio',
@@ -44,10 +46,10 @@ const routes: RouteRecordRaw[] = [
   { path: '/perfil', component: v('PerfilView'), meta: { acesso: 'cliente', titulo: 'Meu perfil' } },
   { path: '/comprovante/:id', component: v('ComprovanteView'), meta: { acesso: 'logado', titulo: 'Comprovante' } },
   { path: '/caixinhas/:id', redirect: '/caixinhas' },
-  { path: '/chaves', redirect: '/pix/chaves' },
-  { path: '/recorrencias', redirect: { path: '/pix', hash: '#agendados' } },
-  { path: '/pix/agendados', redirect: { path: '/pix', hash: '#agendados' } },
-  { path: '/pix/agendamentos', redirect: { path: '/pix', hash: '#agendados' } },
+  { path: '/chaves', redirect: '/transferencias/chaves' },
+  { path: '/recorrencias', redirect: { path: '/transferencias', hash: '#agendados' } },
+  { path: '/transferencias/agendados', redirect: { path: '/transferencias', hash: '#agendados' } },
+  { path: '/transferencias/agendamentos', redirect: { path: '/transferencias', hash: '#agendados' } },
   { path: '/relatorio', redirect: '/extrato/relatorio' },
   { path: '/extrato/calendario', redirect: '/extrato' },
   { path: '/orcamentos', redirect: '/extrato' },
@@ -65,7 +67,7 @@ const router = createRouter({
   routes,
   scrollBehavior: (to, from, salva) => {
     if (salva) return salva;
-    if (to.path === '/pix' && to.hash === '#agendados') return false;
+    if (to.path === '/transferencias' && to.hash === '#agendados') return false;
     return { top: 0 };
   },
 });

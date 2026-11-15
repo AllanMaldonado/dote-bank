@@ -31,7 +31,7 @@
           <thead>
             <tr>
               <th class="dote-label">mês</th>
-              <th class="dote-label text-right">pix</th>
+              <th class="dote-label text-right">transferências</th>
               <th class="dote-label text-right">volume</th>
             </tr>
           </thead>
@@ -70,8 +70,8 @@ const DINHEIRO = [
   { rotulo: 'guardado em caixinhas', valor: (p) => formatMoney(p.caixinhasCentavos) },
   {
     rotulo: 'volume de transferências',
-    valor: (p) => formatMoney(p.pix.volumeCentavos),
-    detalhe: (p) => `${p.pix.quantidade} transferências`,
+    valor: (p) => formatMoney(p.transferencias.volumeCentavos),
+    detalhe: (p) => `${p.transferencias.quantidade} transferências`,
   },
 ];
 

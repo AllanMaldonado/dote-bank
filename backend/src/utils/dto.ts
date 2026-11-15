@@ -1,6 +1,7 @@
 const { AGENCIA } = require('../models/constantes');
 const { exibirPontos } = require('./dinheiro');
 const { direcaoPara, taxasEfetivas } = require('./regras');
+const { normalizarTipo, normalizarLink } = require('./compatibilidadeTransferencias');
 
 const lista = (itens, mapear) => ({ itens: itens.map(mapear) });
 
@@ -90,10 +91,10 @@ const contatoPublico = (c) =>
 const notificacaoPublica = (n) =>
   n && {
     id: String(n._id),
-    tipo: n.tipo,
+    tipo: normalizarTipo(n.tipo),
     titulo: n.titulo,
     mensagem: exibirPontos(n.mensagem),
-    link: n.link,
+    link: normalizarLink(n.link),
     lida: n.lida,
     data: n.data,
   };
@@ -102,7 +103,7 @@ const transacaoPublica = (t, usuarioId) =>
   t && {
     id: String(t._id),
     codigo: t.codigo,
-    tipo: t.tipo,
+    tipo: normalizarTipo(t.tipo),
     direcao: direcaoPara(t, usuarioId),
     status: t.status,
     valorCentavos: t.valorCentavos,

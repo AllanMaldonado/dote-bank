@@ -1,7 +1,16 @@
 const env = require('../config/env');
 
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-const TIMEOUT_MS = 12_000;
+const TIMEOUT_TOTAL_MS = 25_000;
+
+function motivoDaFalha(erro, signal) {
+  if (signal.aborted || ['TimeoutError', 'AbortError'].includes(erro?.name)) return 'tempo_esgotado';
+  if ([401, 403].includes(erro?.status)) return 'credencial_recusada';
+  if (erro?.status === 429) return 'limite_provedor';
+  if (erro?.status === 404) return 'modelo_indisponivel';
+  if (erro?.status === 400) return 'requisicao_recusada';
+  return 'provedor_indisponivel';
+}
 
 async function chamarGemini(mensagens, modelo, signal) {
   const resposta = await fetch(ENDPOINT, {
@@ -29,18 +38,24 @@ class GeminiService {
   }
 
   async gerar(mensagens, tratarTexto) {
-    const signal = AbortSignal.timeout(TIMEOUT_MS);
+    const prazo = Date.now() + TIMEOUT_TOTAL_MS;
+    const limitePorModelo = env.gemini.modelos.length > 1 ? 12_000 : TIMEOUT_TOTAL_MS;
+    let falha = 'provedor_indisponivel';
     for (const modelo of env.gemini.modelos) {
-      if (signal.aborted) break;
+      const restante = prazo - Date.now();
+      if (restante <= 0) break;
+      const signal = AbortSignal.timeout(Math.min(limitePorModelo, restante));
       try {
         const texto = tratarTexto(await this.cliente(mensagens, modelo, signal));
         if (texto) return { texto, modelo };
+        falha = 'resposta_invalida';
         console.warn('[ia] resposta fora do formato esperado', modelo);
       } catch (erro) {
-        console.warn('[ia] falha no modelo', modelo, Number.isInteger(erro?.status) ? erro.status : '');
+        falha = motivoDaFalha(erro, signal);
+        console.warn('[ia] falha no modelo', modelo, falha, Number.isInteger(erro?.status) ? erro.status : '');
       }
     }
-    return null;
+    return { falha };
   }
 }
 

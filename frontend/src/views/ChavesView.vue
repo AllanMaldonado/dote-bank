@@ -1,6 +1,6 @@
 <template>
   <div>
-    <AbasSecao :abas="ABAS_PIX" />
+    <AbasSecao :abas="ABAS_TRANSFERENCIAS" />
     <v-card class="pa-5 mb-4">
       <p class="text-muted text-body-2 mt-0 mb-4">
         Até 5 chaves. CPF, e-mail e celular são os do seu cadastro; a aleatória é gerada pelo banco.
@@ -91,11 +91,11 @@ import AbasSecao from '../components/AbasSecao.vue';
 import DialogoConfirmar from '../components/DialogoConfirmar.vue';
 import { aoAbrirTela } from '../composables/aoAbrirTela';
 import { useAcao } from '../composables/useAcao';
-import { pixApi } from '../api/pix';
+import { transferenciasApi } from '../api/transferencias';
 import { useAuthStore } from '../stores/auth';
 import { useToastStore } from '../stores/toast';
 import { TIPOS_CHAVE } from '../utils/constantes';
-import { ABAS_PIX } from '../utils/secoes';
+import { ABAS_TRANSFERENCIAS } from '../utils/secoes';
 
 const ICONES = {
   cpf: 'mdi-card-account-details-outline',
@@ -116,24 +116,24 @@ const tiposDisponiveis = computed(() =>
   ),
 );
 
-const carregar = () => executar(async () => (chaves.value = (await pixApi.listarChaves()).itens));
+const carregar = () => executar(async () => (chaves.value = (await transferenciasApi.listarChaves()).itens));
 
 async function criar(tipo) {
   criando.value = tipo;
-  const ok = await executar(() => pixApi.criarChave(tipo));
+  const ok = await executar(() => transferenciasApi.criarChave(tipo));
   criando.value = null;
   if (ok) toast.mostrar('Chave criada');
   carregar();
 }
 
 async function regenerar(c) {
-  const ok = await executar(() => pixApi.regenerarChave(c.id));
+  const ok = await executar(() => transferenciasApi.regenerarChave(c.id));
   if (ok) toast.mostrar('Chave regenerada');
   carregar();
 }
 
 async function excluir() {
-  const ok = await executar(() => pixApi.excluirChave(aExcluir.value.id));
+  const ok = await executar(() => transferenciasApi.excluirChave(aExcluir.value.id));
   if (ok !== undefined) toast.mostrar('Chave excluída');
   aExcluir.value = null;
   carregar();

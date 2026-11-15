@@ -8,7 +8,7 @@ O DOTE é um banco digital de pontos fictícios (P$). Um cliente recebe pontos a
 | --- | --- | --- |
 | **Abrir conta** · `/cadastro` | Visitante | Criar conta, entrar e acompanhar a aprovação |
 | **Início** · `/inicio` | Cliente | Ver saldo em conta, caixinhas e últimas movimentações |
-| **Transferências** · `/pix` | Cliente | Enviar pontos, acessar chaves e contatos e agendar transferências mensais |
+| **Transferências** · `/transferencias` | Cliente | Enviar pontos, acessar chaves e contatos e agendar transferências mensais |
 | **Caixinhas** · `/caixinhas` | Cliente | Criar metas, aplicar, resgatar, editar e excluir |
 | **Extrato** · `/extrato` | Cliente | Buscar e filtrar lançamentos, abrir comprovantes e acessar o relatório |
 | **Diamante** | Cliente | Ler avisos e pedir uma análise financeira |
@@ -40,7 +40,7 @@ O cadastro nasce **pendente** e já permite entrar na tela de espera. Só a cont
 | --- | --- |
 | **Chaves** | Até 5 por conta, únicas no DOTE. CPF e e-mail vêm do cadastro, celular exige número cadastrado e a chave aleatória é gerada pelo sistema. A aleatória pode ser regenerada. |
 | **Contatos** | Até 50 por conta. Salve por apelido e chave, edite ou exclua pela agenda. O destino é conferido novamente no envio. |
-| **Validações do Pix** | A conta de destino precisa estar ativa. O sistema recusa envio para a própria conta e transferência sem saldo disponível. |
+| **Validações da transferência** | A conta de destino precisa estar ativa. O sistema recusa envio para a própria conta e transferência sem saldo disponível. |
 | **Comprovante** | Abra pelo extrato e use **Imprimir / salvar PDF**. As partes da transferência e o administrador têm acesso pelo sistema. |
 
 ## Caixinhas, rendimento e relógio
@@ -67,7 +67,7 @@ flowchart LR
 | **Extrato** | Filtre por período, categoria, descrição ou tipo de movimentação. Abra o lançamento para consultar o comprovante. |
 | **Relatório** | Veja entradas, saídas, rendimentos e evolução mensal. Aplicar e resgatar pontos de uma caixinha são movimentos internos, excluídos destes totais. |
 | **Exportação** | Use **Exportar** para gerar HTML, Markdown ou PDF via impressão. O relatório exportado inclui os valores mesmo se estiverem ocultos na interface. |
-| **Avisos** | O Diamante reúne eventos como Pix recebido, meta e rendimento. É possível marcar avisos como lidos. |
+| **Avisos** | O Diamante reúne eventos coma transferência recebido, meta e rendimento. É possível marcar avisos como lidos. |
 | **Análise** | **Pedir análise** no Diamante usa do início do ano simulado até a data atual do banco. Os filtros da tela de relatório se aplicam ao relatório. Com Gemini configurado, o resultado identifica a IA e o modelo. Em caso de indisponibilidade, aparece a análise por regras. |
 
 Para ver os fluxos em ordem, use a [demonstração](demonstracao.md). Para consultar a API e as regras de implementação, veja a [arquitetura](arquitetura.md).

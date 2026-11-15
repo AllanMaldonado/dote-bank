@@ -4,8 +4,8 @@ const Notificacao = require('../src/models/Notificacao');
 const adminService = require('../src/services/adminService');
 const authService = require('../src/services/authService');
 const caixinhaService = require('../src/services/caixinhaService');
-const chavePixService = require('../src/services/chavePixService');
-const pixService = require('../src/services/pixService');
+const chaveTransferenciaService = require('../src/services/chaveTransferenciaService');
+const transferenciaService = require('../src/services/transferenciaService');
 const recorrenciaService = require('../src/services/recorrenciaService');
 const relogioService = require('../src/services/relogioService');
 const tempoService = require('../src/services/tempoService');
@@ -33,17 +33,17 @@ async function popular({
   const caio = await cliente('Caio Collete', CONTAS.caio, '39053344705', '18991110002');
 
   for (const u of [allan, caio]) {
-    await chavePixService.criar(u, { tipo: 'email' });
-    await chavePixService.criar(u, { tipo: 'cpf' });
+    await chaveTransferenciaService.criar(u, { tipo: 'email' });
+    await chaveTransferenciaService.criar(u, { tipo: 'cpf' });
   }
-  await chavePixService.criar(allan, { tipo: 'celular' });
+  await chaveTransferenciaService.criar(allan, { tipo: 'celular' });
 
-  const pix = (de, para, valorCentavos, categoria, descricao) =>
-    pixService.enviar(de._id, { chave: para.email, valorCentavos, categoria, descricao });
+  const transferencia = (de, para, valorCentavos, categoria, descricao) =>
+    transferenciaService.enviar(de._id, { chave: para.email, valorCentavos, categoria, descricao });
 
-  await pix(caio, allan, 4000, 'Lazer', 'Ingresso do show');
-  await pix(allan, caio, 6790, 'Alimentação', 'Mercado');
-  await pix(caio, allan, 1500, 'Transporte', 'Carona');
+  await transferencia(caio, allan, 4000, 'Lazer', 'Ingresso do show');
+  await transferencia(allan, caio, 6790, 'Alimentação', 'Mercado');
+  await transferencia(caio, allan, 1500, 'Transporte', 'Carona');
 
   const CAIXINHAS_ALLAN = [
     ['Notebook', 150000, 8000],
@@ -79,10 +79,10 @@ async function popular({
   const variar = (base, mes, passo) => base + ((mes * passo) % 7) * 500;
   for (let mes = 0; mes < MESES; mes++) {
     await tempoService.avancar({ ate: `2026-${String(mes + 1).padStart(2, '0')}-15` });
-    await pix(caio, allan, 35000, 'Outros', 'Pagamento de freela');
-    await pix(allan, caio, variar(8000, mes, 3), 'Alimentação', 'Mercado');
-    await pix(caio, allan, variar(1500, mes, 2), 'Transporte', 'Carona');
-    if (mes % 3 === 1) await pix(allan, caio, variar(3000, mes, 4), 'Lazer', 'Churrasco');
+    await transferencia(caio, allan, 35000, 'Outros', 'Pagamento de freela');
+    await transferencia(allan, caio, variar(8000, mes, 3), 'Alimentação', 'Mercado');
+    await transferencia(caio, allan, variar(1500, mes, 2), 'Transporte', 'Carona');
+    if (mes % 3 === 1) await transferencia(allan, caio, variar(3000, mes, 4), 'Lazer', 'Churrasco');
   }
   await tempoService.avancar({ ate: '2026-11-05' });
   await Notificacao.updateMany({ data: { $lt: new Date('2026-10-01T00:00:00Z') } }, { lida: true });

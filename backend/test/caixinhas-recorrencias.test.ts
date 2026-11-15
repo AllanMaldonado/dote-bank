@@ -3,14 +3,14 @@ const { after, before, describe, test } = require('node:test');
 const { criarAdmin, criarClienteAtivo, encerrarBanco, iniciarBanco } = require('./helpers');
 const recorrenciaService = require('../src/services/recorrenciaService');
 
-describe('caixinhas e Pix recorrente', () => {
+describe('caixinhas e Transferência recorrente', () => {
   let admin, ana, bruno;
   before(async () => {
     await iniciarBanco();
     admin = await criarAdmin();
     ana = await criarClienteAtivo(admin, 'Ana Souza');
     bruno = await criarClienteAtivo(admin, 'Bruno Lima');
-    await bruno.agente.post('/api/pix/chaves').send({ tipo: 'email' }).expect(201);
+    await bruno.agente.post('/api/transferencias/chaves').send({ tipo: 'email' }).expect(201);
   });
   after(encerrarBanco);
 
@@ -59,50 +59,50 @@ describe('caixinhas e Pix recorrente', () => {
   test('recorrência: CRUD, pausa e validações', async () => {
     const a = ana.agente;
     const r = await a
-      .post('/api/pix/agendamentos')
+      .post('/api/transferencias/agendamentos')
       .send({ chave: bruno.dados.email, valorCentavos: 95000, diaDoMes: 5, categoria: 'Moradia', descricao: 'Aluguel' })
       .expect(201);
     assert.equal(r.body.destinatario, 'Bruno Lima');
     assert.equal(r.body.ativa, true);
 
     await a
-      .post('/api/pix/agendamentos')
+      .post('/api/transferencias/agendamentos')
       .send({ chave: bruno.dados.email, valorCentavos: 100, diaDoMes: 31, descricao: 'x' })
       .expect(400);
     await a
-      .post('/api/pix/agendamentos')
+      .post('/api/transferencias/agendamentos')
       .send({ chave: 'ninguem@x.dev', valorCentavos: 100, diaDoMes: 1, descricao: 'x' })
       .expect(404);
     await a
-      .post('/api/pix/agendamentos')
+      .post('/api/transferencias/agendamentos')
       .send({ chave: bruno.dados.email, valorCentavos: 100, diaDoMes: 1 })
       .expect(400);
 
     const ed = await a
-      .put(`/api/pix/agendamentos/${r.body.id}`)
+      .put(`/api/transferencias/agendamentos/${r.body.id}`)
       .send({ valorCentavos: 100000, diaDoMes: 10 })
       .expect(200);
     assert.equal(ed.body.valorCentavos, 100000);
     assert.equal(ed.body.diaDoMes, 10);
 
-    const pausa = await a.patch(`/api/pix/agendamentos/${r.body.id}/ativa`).send({ ativa: false }).expect(200);
+    const pausa = await a.patch(`/api/transferencias/agendamentos/${r.body.id}/ativa`).send({ ativa: false }).expect(200);
     assert.equal(pausa.body.ativa, false);
-    await a.patch(`/api/pix/agendamentos/${r.body.id}/ativa`).send({ ativa: 'sim' }).expect(400);
+    await a.patch(`/api/transferencias/agendamentos/${r.body.id}/ativa`).send({ ativa: 'sim' }).expect(400);
 
-    assert.equal((await a.get('/api/pix/agendamentos')).body.itens.length, 1);
-    await bruno.agente.delete(`/api/pix/agendamentos/${r.body.id}`).expect(404);
-    await a.delete(`/api/pix/agendamentos/${r.body.id}`).expect(204);
-    await a.get(`/api/pix/agendamentos/${r.body.id}`).expect(404);
+    assert.equal((await a.get('/api/transferencias/agendamentos')).body.itens.length, 1);
+    await bruno.agente.delete(`/api/transferencias/agendamentos/${r.body.id}`).expect(404);
+    await a.delete(`/api/transferencias/agendamentos/${r.body.id}`).expect(204);
+    await a.get(`/api/transferencias/agendamentos/${r.body.id}`).expect(404);
   });
 
   test('executarDoDia é reentrante: repetir o mesmo dia não cobra nem registra falha de novo', async () => {
-    await ana.agente.post('/api/pix/chaves').send({ tipo: 'email' }).expect(201);
+    await ana.agente.post('/api/transferencias/chaves').send({ tipo: 'email' }).expect(201);
     await ana.agente
-      .post('/api/pix/agendamentos')
+      .post('/api/transferencias/agendamentos')
       .send({ chave: bruno.dados.email, valorCentavos: 10000, diaDoMes: 5, categoria: 'Contas', descricao: 'Internet' })
       .expect(201);
     await bruno.agente
-      .post('/api/pix/agendamentos')
+      .post('/api/transferencias/agendamentos')
       .send({ chave: ana.dados.email, valorCentavos: 90_000_000, diaDoMes: 5, descricao: 'Carro' })
       .expect(201);
 

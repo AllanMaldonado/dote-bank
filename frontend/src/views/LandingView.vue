@@ -97,7 +97,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import IconePix from '../components/IconePix.vue';
+import IconeTransferencia from '../components/IconeTransferencia.vue';
 import MarcaDote from '../components/MarcaDote.vue';
 import DiamanteMascote from '../components/DiamanteMascote.vue';
 import { rotaInicial, useAuthStore } from '../stores/auth';
@@ -111,7 +111,7 @@ const minhaConta = computed(() =>
 );
 
 const RECURSOS = [
-  { icone: IconePix, titulo: 'Transferência com comprovante', texto: 'Envie pontos na hora e salve o PDF.' },
+  { icone: IconeTransferencia, titulo: 'Transferência com comprovante', texto: 'Envie pontos na hora e salve o PDF.' },
   { icone: 'mdi-key-outline', titulo: 'Suas chaves', texto: 'CPF, e-mail, celular e aleatória.' },
   {
     icone: 'mdi-piggy-bank-outline',
@@ -185,20 +185,25 @@ function irParaRecursos() {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 112px;  
+  column-gap: 112px;
+  row-gap: 32px;
   padding: 48px 0;
 }
 .dote-hero-coluna {
+  container-type: inline-size;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 24px;
 }
 .dote-hero-titulo {
-  font-size: clamp(64px, 11vw, 120px);
+  width: 100%;
+  font-size: clamp(32px, 16cqw, 160px);
   line-height: 1;
   font-weight: 400;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
   color: rgb(var(--v-theme-primary));
 }
 .dote-hero-texto {
@@ -244,7 +249,7 @@ function irParaRecursos() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 56px;  
+  gap: 56px;
 }
 .dote-moeda-disco {
   position: relative;
@@ -411,7 +416,7 @@ function irParaRecursos() {
   background: rgb(var(--v-theme-neon-950));
 }
 .dote-recurso-icone :deep(.dote-diamante) {
-  --dote-diamante-cor: rgb(var(--v-theme-neon-300));  
+  --dote-diamante-cor: rgb(var(--v-theme-neon-300));
 }
 .dote-recurso-titulo {
   font-size: 15px;
@@ -494,7 +499,7 @@ function irParaRecursos() {
     padding: 32px 0;
   }
   .dote-moeda {
-    display: none;  
+    display: none;
   }
   .dote-recursos {
     grid-template-columns: 1fr 1fr;

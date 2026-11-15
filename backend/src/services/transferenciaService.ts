@@ -1,17 +1,17 @@
-const chavePixService = require('./chavePixService');
+const chaveTransferenciaService = require('./chaveTransferenciaService');
 const movimentacaoService = require('./movimentacaoService');
 const notificacaoService = require('./notificacaoService');
 const relogioService = require('./relogioService');
 const transacaoService = require('./transacaoService');
 
-class PixService {
+class TransferenciaService {
   consultarDestinatario(entrada) {
-    return chavePixService.resolverDestino(entrada);
+    return chaveTransferenciaService.resolverDestino(entrada);
   }
 
   async transferir(origemId, { chave, valorCentavos, categoria, descricao }, { recorrenciaId, data }: { recorrenciaId?: unknown; data?: Date } = {}) {
     const [{ chave: chaveDestino, destino }, hoje] = await Promise.all([
-      chavePixService.resolverDestino(chave, { origemId }),
+      chaveTransferenciaService.resolverDestino(chave, { origemId }),
       data ?? relogioService.agora(),
     ]);
 
@@ -20,11 +20,11 @@ class PixService {
       let creditou = false;
       try {
         creditou = await movimentacaoService.creditarConta(destino._id, valorCentavos);
-        if (!creditou) throw chavePixService.erroDestinoIndisponivel();
+        if (!creditou) throw chaveTransferenciaService.erroDestinoIndisponivel();
         return await transacaoService.registrar({
           categoria,
           descricao,
-          tipo: recorrenciaId ? 'recorrencia' : 'pix',
+          tipo: recorrenciaId ? 'recorrencia' : 'transferencia',
           origemId,
           destinoId: destino._id,
           valorCentavos,
@@ -40,7 +40,7 @@ class PixService {
     });
     await notificacaoService.notificarSemBloquear(
       destino._id,
-      'pix_recebido',
+      'transferencia_recebida',
       { valor: valorCentavos, de: origem.nome, transacaoId: transacao._id },
       hoje,
     );
@@ -55,7 +55,7 @@ class PixService {
     const t = await this.transferir(usuarioId, dados);
     await notificacaoService.notificarSemBloquear(
       usuarioId,
-      'pix_enviado',
+      'transferencia_enviada',
       { valor: t.valorCentavos, para: t.destinoId.nome, transacaoId: t._id },
       t.data,
     );
@@ -63,4 +63,4 @@ class PixService {
   }
 }
 
-module.exports = new PixService();
+module.exports = new TransferenciaService();

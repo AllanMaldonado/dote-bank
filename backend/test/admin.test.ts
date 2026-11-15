@@ -45,19 +45,19 @@ describe('administração', () => {
     const cfg = await admin.get('/api/admin/config').expect(200);
     assert.equal(cfg.body.percentualCaixinha, 105);
     assert.equal(cfg.body.taxaCaixinhaAnual, (cfg.body.indicePointsAnual * 105) / 100);
-    assert.equal(cfg.body.taxaContaAnual, undefined);  
+    assert.equal(cfg.body.taxaContaAnual, undefined);
     const novo = await admin
       .put('/api/admin/config/taxas')
       .send({ indicePointsAnual: 10, percentualCaixinha: 150 })
       .expect(200);
-    assert.equal(novo.body.taxaCaixinhaAnual, 15);  
+    assert.equal(novo.body.taxaCaixinhaAnual, 15);
     await admin.put('/api/admin/config/taxas').send({ percentualCaixinha: -1 }).expect(400);
     await admin.put('/api/admin/config/taxas').send({ indicePointsAnual: 101 }).expect(400);
 
     await ana.agente.put('/api/admin/config/taxas').send({ indicePointsAnual: 50 }).expect(403);
   });
 
-  test('painel do admin: clientes por status, saldo, Pix e últimos 6 meses', async () => {
+  test('painel do admin: clientes por status, saldo, Transferência e últimos 6 meses', async () => {
     const r = await admin.get('/api/admin/painel').expect(200);
     assert.equal(
       r.body.clientes.total,
@@ -66,7 +66,7 @@ describe('administração', () => {
     assert.ok(r.body.clientes.ativo >= 1);
     assert.ok(r.body.saldoTotalCentavos >= 100000);
     assert.equal(r.body.caixinhasCentavos, 0);
-    assert.deepEqual(Object.keys(r.body.pix), ['quantidade', 'volumeCentavos']);
+    assert.deepEqual(Object.keys(r.body.transferencias), ['quantidade', 'volumeCentavos']);
     assert.equal(r.body.porMes.length, 6);
     assert.match(r.body.porMes[5].mes, /^\d{4}-\d{2}$/);
     assert.ok(r.body.dataSistema);

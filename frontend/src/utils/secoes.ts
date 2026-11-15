@@ -1,6 +1,6 @@
-export const ABAS_PIX = [
-  { titulo: 'Enviar', para: '/pix' },
-  { titulo: 'Chaves', para: '/pix/chaves' },
+export const ABAS_TRANSFERENCIAS = [
+  { titulo: 'Enviar', para: '/transferencias' },
+  { titulo: 'Chaves', para: '/transferencias/chaves' },
 ];
 
 export const ABAS_EXTRATO = [

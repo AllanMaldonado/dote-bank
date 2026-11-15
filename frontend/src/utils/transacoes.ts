@@ -2,7 +2,7 @@ import { formatDiaMes } from './datas';
 
 const TITULOS = {
   deposito_inicial: () => 'Depósito inicial',
-  pix: (t) => (t.direcao === 'entrada' ? 'Transferência recebida' : 'Transferência enviada'),
+  transferencia: (t) => (t.direcao === 'entrada' ? 'Transferência recebida' : 'Transferência enviada'),
   recorrencia: (t) => (t.direcao === 'entrada' ? 'Transferência agendada recebida' : 'Transferência agendada'),
   rendimento: (t) => (t.caixinha ? 'Rendimento da caixinha' : 'Rendimento do mês'),
   caixinha_aplicacao: () => 'Aplicação na caixinha',

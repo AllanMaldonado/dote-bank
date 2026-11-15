@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { CATEGORIAS } = require('./constantes');
 
-const pixRecorrenteSchema = new mongoose.Schema(
+const transferenciaRecorrenteSchema = new mongoose.Schema(
   {
     usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     chaveDestino: { type: String, required: true },
@@ -17,6 +17,6 @@ const pixRecorrenteSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-pixRecorrenteSchema.index({ ativa: 1, diaDoMes: 1 });  
+transferenciaRecorrenteSchema.index({ ativa: 1, diaDoMes: 1 });
 
-module.exports = mongoose.model('PixRecorrente', pixRecorrenteSchema, 'recorrencias');
+module.exports = mongoose.model('TransferenciaRecorrente', transferenciaRecorrenteSchema, 'recorrencias');

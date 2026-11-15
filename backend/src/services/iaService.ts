@@ -2,6 +2,16 @@ const { CATEGORIAS } = require('../models/constantes');
 const { exibirPontos, formatMoney } = require('../utils/dinheiro');
 const geminiService = require('./geminiService');
 
+const AVISOS = {
+  tempo_esgotado: 'A IA demorou para responder. Análise automática sem IA.',
+  credencial_recusada: 'A configuração de acesso à IA precisa ser revisada. Análise automática sem IA.',
+  limite_provedor: 'A IA atingiu o limite de uso do provedor. Análise automática sem IA.',
+  modelo_indisponivel: 'O modelo de IA configurado está indisponível. Análise automática sem IA.',
+  requisicao_recusada: 'O provedor recusou a solicitação de IA. Análise automática sem IA.',
+  resposta_invalida: 'A IA devolveu uma resposta incompleta ou fora do formato. Análise automática sem IA.',
+  provedor_indisponivel: 'O Gemini está indisponível. Análise automática sem IA.',
+};
+
 const INSTRUCOES = `Você é o Diamante, assistente do DOTE, um banco simulado.
 Responda em português do Brasil, em texto simples. Use apenas os dados financeiros fornecidos.
 Os valores são pontos fictícios do DOTE. Escreva montantes com o prefixo P$.
@@ -99,15 +109,18 @@ class IaService {
   async analisarRelatorio(relatorio) {
     const dados = dadosDoRelatorio(relatorio);
     const disponivel = geminiService.disponivel();
+    let falha;
     if (disponivel) {
       const resultado = await geminiService.gerar(mensagens(INSTRUCOES_RELATORIO, dados), tratarAnalise);
-      if (resultado) return { ...resultado, fonte: 'gemini' };
+      if (resultado?.texto) return { ...resultado, fonte: 'gemini' };
+      falha = resultado?.falha ?? 'provedor_indisponivel';
     }
     return {
       texto: analisePorRegras(relatorio, dados),
       fonte: 'regras',
+      ...(falha && { motivo: falha }),
       aviso: disponivel
-        ? 'O Gemini está indisponível. Análise automática sem IA.'
+        ? AVISOS[falha]
         : 'Gemini não configurado. Análise automática sem IA.',
     };
   }

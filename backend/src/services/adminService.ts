@@ -3,12 +3,13 @@ const Transacao = require('../models/Transacao');
 const User = require('../models/User');
 const { notFound, unprocessable } = require('../utils/AppError');
 const { escaparRegex, somenteDigitos } = require('../utils/validacao');
-const chavePixService = require('./chavePixService');
+const chaveTransferenciaService = require('./chaveTransferenciaService');
 const contaService = require('./contaService');
 const notificacaoService = require('./notificacaoService');
 const relogioService = require('./relogioService');
 const transacaoService = require('./transacaoService');
 const movimentacaoService = require('./movimentacaoService');
+const { tiposTransferencia } = require('../utils/compatibilidadeTransferencias');
 
 const SALDO_INICIAL_CENTAVOS = 1000_00;
 
@@ -21,7 +22,7 @@ const TRANSICOES = {
 const EXCLUIVEIS = ['pendente', 'rejeitado'];
 
 const MESES_DO_PAINEL = 6;
-const PIX_CONCLUIDO = { tipo: { $in: ['pix', 'recorrencia'] }, status: 'concluida' };
+const TRANSFERENCIAS_CONCLUIDAS = { tipo: { $in: [...tiposTransferencia, 'recorrencia'] }, status: 'concluida' };
 
 async function transicionar(id, acao, update = {}, concluir = null) {
   return movimentacaoService.comContaSerializada(id, async () => {
@@ -137,7 +138,7 @@ class AdminService {
           'status_invalido',
         );
       }
-      await Promise.all([chavePixService.excluirTodas(u._id), u.deleteOne()]);
+      await Promise.all([chaveTransferenciaService.excluirTodas(u._id), u.deleteOne()]);
     });
   }
 
@@ -146,7 +147,7 @@ class AdminService {
     const meses = ultimosMeses(dataSistema, MESES_DO_PAINEL);
     const inicio = new Date(`${meses[0]}-01T00:00:00.000Z`);
 
-    const [porStatus, saldos, caixinhas, pixTotal, pixPorMes] = await Promise.all([
+    const [porStatus, saldos, caixinhas, transferenciasTotal, transferenciasPorMes] = await Promise.all([
       User.aggregate([{ $match: { perfil: 'cliente' } }, { $group: { _id: '$status', total: { $sum: 1 } } }]),
       User.aggregate([
         { $match: { perfil: 'cliente' } },
@@ -154,11 +155,11 @@ class AdminService {
       ]),
       Caixinha.aggregate([{ $group: { _id: null, total: { $sum: '$saldoCentavos' } } }]),
       Transacao.aggregate([
-        { $match: PIX_CONCLUIDO },
+        { $match: TRANSFERENCIAS_CONCLUIDAS },
         { $group: { _id: null, quantidade: { $sum: 1 }, volumeCentavos: { $sum: '$valorCentavos' } } },
       ]),
       Transacao.aggregate([
-        { $match: { ...PIX_CONCLUIDO, data: { $gte: inicio } } },
+        { $match: { ...TRANSFERENCIAS_CONCLUIDAS, data: { $gte: inicio } } },
         {
           $group: {
             _id: { $dateToString: { format: '%Y-%m', date: '$data' } },
@@ -175,14 +176,14 @@ class AdminService {
       clientes.total += total;
     }
     const porMes = meses.map((mes) => {
-      const m = pixPorMes.find((p) => p._id === mes);
+      const m = transferenciasPorMes.find((p) => p._id === mes);
       return { mes, quantidade: m?.quantidade ?? 0, volumeCentavos: m?.volumeCentavos ?? 0 };
     });
     return {
       clientes,
       saldoTotalCentavos: saldos[0]?.total ?? 0,
       caixinhasCentavos: caixinhas[0]?.total ?? 0,
-      pix: { quantidade: pixTotal[0]?.quantidade ?? 0, volumeCentavos: pixTotal[0]?.volumeCentavos ?? 0 },
+      transferencias: { quantidade: transferenciasTotal[0]?.quantidade ?? 0, volumeCentavos: transferenciasTotal[0]?.volumeCentavos ?? 0 },
       porMes,
       dataSistema,
     };

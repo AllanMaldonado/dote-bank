@@ -1,16 +1,16 @@
 const { z } = require('zod');
-const { categoria, categoriaOpcional, centavos, chavePix, texto } = require('./comum');
+const { categoria, categoriaOpcional, centavos, chaveTransferência, texto } = require('./comum');
 
 const diaDoMes = z.coerce.number({ error: 'diaDoMes deve ser um inteiro entre 1 e 28' }).int().min(1).max(28);
 const descricao = texto('descricao', { max: 140 });
 
 const criarRecorrenciaSchema = z.object({
-  body: z.object({ chave: chavePix, valorCentavos: centavos, diaDoMes, categoria: categoriaOpcional, descricao }),
+  body: z.object({ chave: chaveTransferência, valorCentavos: centavos, diaDoMes, categoria: categoriaOpcional, descricao }),
 });
 
 const atualizarRecorrenciaSchema = z.object({
   body: z.object({
-    chave: chavePix.optional(),
+    chave: chaveTransferência.optional(),
     valorCentavos: centavos.optional(),
     diaDoMes: diaDoMes.optional(),
     categoria: categoria.optional(),

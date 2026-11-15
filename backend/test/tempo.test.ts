@@ -12,15 +12,15 @@ describe('motor de tempo: rendimentos e Transferência agendada', () => {
   before(async () => {
     await iniciarBanco();
     await relogioService.definirData(new Date('2026-01-02T00:00:00Z'));
-    await relogioService.atualizarTaxas({ indicePointsAnual: 10, percentualCaixinha: 140 });  
+    await relogioService.atualizarTaxas({ indicePointsAnual: 10, percentualCaixinha: 140 });
     admin = await criarAdmin();
     ana = await criarClienteAtivo(admin, 'Ana Souza');
     bruno = await criarClienteAtivo(admin, 'Bruno Lima');
     carla = await criarClienteAtivo(admin, 'Carla Dias');
-    await bruno.agente.post('/api/pix/chaves').send({ tipo: 'email' }).expect(201);
+    await bruno.agente.post('/api/transferencias/chaves').send({ tipo: 'email' }).expect(201);
 
     await ana.agente
-      .post('/api/pix/agendamentos')
+      .post('/api/transferencias/agendamentos')
       .send({
         chave: bruno.dados.email,
         valorCentavos: 50000,
@@ -34,7 +34,7 @@ describe('motor de tempo: rendimentos e Transferência agendada', () => {
     await ana.agente.post(`/api/caixinhas/${caixinhaId}/aplicar`).send({ valorCentavos: 50000 }).expect(200);
 
     await carla.agente
-      .post('/api/pix/agendamentos')
+      .post('/api/transferencias/agendamentos')
       .send({ chave: bruno.dados.email, valorCentavos: 900000, diaDoMes: 10, categoria: 'Contas', descricao: 'Carro' })
       .expect(201);
   });
@@ -61,7 +61,7 @@ describe('motor de tempo: rendimentos e Transferência agendada', () => {
     const aluguel = saidas.body.itens.find((t) => t.tipo === 'recorrencia');
     assert.equal(aluguel.valorCentavos, 50000);
     assert.equal(aluguel.data, '2026-01-05T00:00:00.000Z');
-    const rec = (await ana.agente.get('/api/pix/agendamentos')).body.itens[0];
+    const rec = (await ana.agente.get('/api/transferencias/agendamentos')).body.itens[0];
     assert.equal(rec.ultimoStatus, 'concluida');
 
     const contaCarla = await carla.agente.get('/api/conta').expect(200);
@@ -92,8 +92,8 @@ describe('motor de tempo: rendimentos e Transferência agendada', () => {
   });
 
   test('pausada não executa; avançar até uma data funciona', async () => {
-    const rec = (await ana.agente.get('/api/pix/agendamentos')).body.itens[0];
-    await ana.agente.patch(`/api/pix/agendamentos/${rec.id}/ativa`).send({ ativa: false }).expect(200);
+    const rec = (await ana.agente.get('/api/transferencias/agendamentos')).body.itens[0];
+    await ana.agente.patch(`/api/transferencias/agendamentos/${rec.id}/ativa`).send({ ativa: false }).expect(200);
     const r = await admin.post('/api/admin/relogio/avancar').send({ ate: '2026-02-06' }).expect(200);
     assert.equal(r.body.resumo.dias, 4);
     assert.equal(r.body.resumo.recorrenciasExecutadas, 0);
@@ -125,9 +125,9 @@ describe('motor de tempo: rendimentos e Transferência agendada', () => {
     const aposFalha = await pendente();
     assert.ok(aposFalha > antes, 'os juros do dia foram acumulados antes da falha');
 
-    await tempoService.avancar({ dias: 1 });  
+    await tempoService.avancar({ dias: 1 });
     assert.equal(await pendente(), aposFalha);
-    const proximo = await tempoService.avancar({ dias: 1 });  
+    const proximo = await tempoService.avancar({ dias: 1 });
     assert.ok(proximo.dias === 1 && (await pendente()) > aposFalha);
   });
 

@@ -6,12 +6,12 @@ const relogioService = require('./relogioService');
 const comprovante = (transacaoId) => `/comprovante/${transacaoId}`;
 
 const MODELOS = {
-  pix_recebido: ({ valor, de, transacaoId }) => ({
+  transferencia_recebida: ({ valor, de, transacaoId }) => ({
     titulo: 'Transferência recebida',
     mensagem: `Você recebeu ${formatMoney(valor)} de ${de}.`,
     link: comprovante(transacaoId),
   }),
-  pix_enviado: ({ valor, para, transacaoId }) => ({
+  transferencia_enviada: ({ valor, para, transacaoId }) => ({
     titulo: 'Transferência enviada',
     mensagem: `Transferência de ${formatMoney(valor)} para ${para} concluída.`,
     link: comprovante(transacaoId),
@@ -24,7 +24,7 @@ const MODELOS = {
   recorrencia_falhou: ({ valor, para, descricao, motivo }) => ({
     titulo: 'Transferência agendada não enviada',
     mensagem: `"${descricao}" de ${formatMoney(valor)} para ${para} não foi enviada: ${motivo}.`,
-    link: '/pix/agendamentos',
+    link: '/transferencias/agendamentos',
   }),
   rendimento: ({ valor }) => ({
     titulo: 'Rendimento creditado',

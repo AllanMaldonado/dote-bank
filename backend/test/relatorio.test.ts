@@ -14,16 +14,16 @@ describe('relatório por período e Diamante', () => {
     ana = await criarClienteAtivo(admin, 'Ana Souza');
     bruno = await criarClienteAtivo(admin, 'Bruno Lima');
     carla = await criarClienteAtivo(admin, 'Carla Dias');
-    for (const c of [bruno, carla]) await c.agente.post('/api/pix/chaves').send({ tipo: 'email' }).expect(201);
-    await ana.agente.post('/api/pix/chaves').send({ tipo: 'email' }).expect(201);
+    for (const c of [bruno, carla]) await c.agente.post('/api/transferencias/chaves').send({ tipo: 'email' }).expect(201);
+    await ana.agente.post('/api/transferencias/chaves').send({ tipo: 'email' }).expect(201);
 
-    const pix = (de, para, valorCentavos, categoria) =>
-      de.agente.post('/api/pix/transferencias').send({ chave: para.dados.email, valorCentavos, categoria }).expect(201);
-    await pix(ana, bruno, 65000, 'Moradia');
-    await pix(ana, carla, 20000, 'Alimentação');
-    await pix(bruno, ana, 12000, 'Lazer');
+    const transferencia = (de, para, valorCentavos, categoria) =>
+      de.agente.post('/api/transferencias').send({ chave: para.dados.email, valorCentavos, categoria }).expect(201);
+    await transferencia(ana, bruno, 65000, 'Moradia');
+    await transferencia(ana, carla, 20000, 'Alimentação');
+    await transferencia(bruno, ana, 12000, 'Lazer');
     await relogioService.definirData(new Date('2026-02-15T00:00:00Z'));
-    await pix(ana, carla, 10000, 'Alimentação');
+    await transferencia(ana, carla, 10000, 'Alimentação');
     const cx = await ana.agente.post('/api/caixinhas').send({ nome: 'Viagem' }).expect(201);
     await ana.agente.post(`/api/caixinhas/${cx.body.id}/aplicar`).send({ valorCentavos: 5000 }).expect(200);
   });
@@ -36,7 +36,7 @@ describe('relatório por período e Diamante', () => {
     const r = await ana.agente.get('/api/relatorio').expect(200);
     assert.equal(r.body.periodo.inicio, '2026-01-01T00:00:00.000Z');
     assert.equal(r.body.periodo.fim, '2026-02-15T00:00:00.000Z');
-    assert.equal(r.body.totais.entradasCentavos, 100000 + 12000);  
+    assert.equal(r.body.totais.entradasCentavos, 100000 + 12000);
     assert.equal(r.body.totais.saidasCentavos, 65000 + 20000 + 10000);
     assert.equal(r.body.totais.resultadoCentavos, 112000 - 95000);
     assert.equal(r.body.caixinhasCentavos, 5000);
@@ -92,7 +92,7 @@ describe('relatório por período e Diamante', () => {
     });
     const r = await ana.agente.post('/api/relatorio/analise').send({}).expect(200);
     assert.equal(r.body.fonte, 'gemini');
-    assert.match(r.body.texto, /^Resumo:/);  
+    assert.match(r.body.texto, /^Resumo:/);
     const enviado = JSON.stringify(recebido);
     assert.match(enviado, /Moradia/);
     assert.doesNotMatch(enviado, new RegExp(ana.dados.cpf));

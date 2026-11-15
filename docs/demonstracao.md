@@ -19,9 +19,9 @@ Este roteiro acompanha o produto pela perspectiva de quem usa o banco. Antes de 
 
 Com o seed recém-carregado, o relógio começa em **05/11/2026**. **+1 mês** cruza **01/12**, quando o rendimento é lançado, e **05/12**, quando uma transferência já agendada é executada. Para demonstrar o Gemini real, configure a chave. Para mostrar o envio da redefinição por e-mail, configure o SMTP. Veja o [guia de deploy](deploy.md).
 
-## Acompanhar o Pix no código
+## Acompanhar a transferência no código
 
-Na IDE, use a transferência demonstrada como fio condutor. Aponte a [rota](../backend/src/routes/pixRoutes.ts), que valida a entrada, e o [controller](../backend/src/controllers/pixController.ts), que chama o service e devolve o comprovante. No [service](../backend/src/services/pixService.ts), mostre a resolução do destino, o débito, o crédito e o registro no extrato. O exemplo de P$ 12,50 chega ao backend como `valorCentavos: 1250`.
+Na IDE, use a transferência demonstrada como fio condutor. Aponte a [rota](../backend/src/routes/transferenciaRoutes.ts), que valida a entrada, e o [controller](../backend/src/controllers/transferenciaController.ts), que chama o service e devolve o comprovante. No [service](../backend/src/services/transferenciaService.ts), mostre a resolução do destino, o débito, o crédito e o registro no extrato. O exemplo de P$ 12,50 chega ao backend como `valorCentavos: 1250`.
 
 Para entender os comportamentos de cada área, consulte o [guia do produto](produto.md).
 

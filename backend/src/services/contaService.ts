@@ -3,7 +3,7 @@ const { badRequest, conflict } = require('../utils/AppError');
 const generateToken = require('../utils/generateToken');
 const { taxasEfetivas } = require('../utils/regras');
 const caixinhaService = require('./caixinhaService');
-const chavePixService = require('./chavePixService');
+const chaveTransferenciaService = require('./chaveTransferenciaService');
 const notificacaoService = require('./notificacaoService');
 const relogioService = require('./relogioService');
 
@@ -33,7 +33,7 @@ class ContaService {
       throw conflict('E-mail já em uso');
     }
     await usuario.save();
-    await chavePixService.sincronizarComCadastro(usuario);
+    await chaveTransferenciaService.sincronizarComCadastro(usuario);
     return usuario;
   }
 

@@ -13,7 +13,7 @@ describe('contatos', () => {
     ana = await criarClienteAtivo(admin, 'Ana Souza');
     bruno = await criarClienteAtivo(admin, 'Bruno Lima');
     carla = await criarClienteAtivo(admin, 'Carla Dias');
-    for (const c of [ana, bruno, carla]) await c.agente.post('/api/pix/chaves').send({ tipo: 'email' }).expect(201);
+    for (const c of [ana, bruno, carla]) await c.agente.post('/api/transferencias/chaves').send({ tipo: 'email' }).expect(201);
   });
   after(encerrarBanco);
 
@@ -30,7 +30,7 @@ describe('contatos', () => {
     const inexistente = await a.post('/api/contatos').send({ apelido: 'X', chave: 'ninguem@x.dev' }).expect(404);
     assert.equal(inexistente.body.codigo, 'chave_nao_encontrada');
     const propria = await a.post('/api/contatos').send({ apelido: 'Eu', chave: ana.dados.email }).expect(422);
-    assert.equal(propria.body.codigo, 'pix_para_si');
+    assert.equal(propria.body.codigo, 'transferencia_para_si');
     await a.post('/api/contatos').send({ apelido: '', chave: carla.dados.email }).expect(400);
     await a
       .post('/api/contatos')
@@ -79,7 +79,7 @@ describe('contatos', () => {
       chaveDestino: `chave-${i}@x.dev`,
       destinatarioNome: 'Alguém',
     }));
-    await Contato.insertMany(docs);  
+    await Contato.insertMany(docs);
     const r = await ana.agente
       .post('/api/contatos')
       .send({ apelido: 'Carlinha', chave: carla.dados.email })

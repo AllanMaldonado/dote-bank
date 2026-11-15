@@ -1,39 +1,39 @@
-const PixRecorrente = require('../models/PixRecorrente');
+const TransferenciaRecorrente = require('../models/TransferenciaRecorrente');
 const { notFound } = require('../utils/AppError');
-const chavePixService = require('./chavePixService');
+const chaveTransferenciaService = require('./chaveTransferenciaService');
 const notificacaoService = require('./notificacaoService');
-const pixService = require('./pixService');
+const transferenciaService = require('./transferenciaService');
 const transacaoService = require('./transacaoService');
 
 const FALHAS_ESPERADAS = [
   'saldo_insuficiente',
   'destino_indisponivel',
   'chave_nao_encontrada',
-  'pix_para_si',
+  'transferencia_para_si',
 ];
 
 class RecorrenciaService {
   listar(usuarioId) {
-    return PixRecorrente.find({ usuarioId }).sort({ diaDoMes: 1, createdAt: 1 }).lean();
+    return TransferenciaRecorrente.find({ usuarioId }).sort({ diaDoMes: 1, createdAt: 1 }).lean();
   }
 
   async obter(usuarioId, id) {
-    const r = await PixRecorrente.findOne({ _id: id, usuarioId });
+    const r = await TransferenciaRecorrente.findOne({ _id: id, usuarioId });
     if (!r) throw notFound('Recorrência não encontrada');
     return r;
   }
 
   async criar(usuarioId, { chave, ...campos }) {
-    return PixRecorrente.create({
+    return TransferenciaRecorrente.create({
       usuarioId,
-      ...(await chavePixService.resumirDestino(usuarioId, chave)),
+      ...(await chaveTransferenciaService.resumirDestino(usuarioId, chave)),
       ...campos,
     });
   }
 
   async atualizar(usuarioId, id, { chave, ...campos }) {
     const r = await this.obter(usuarioId, id);
-    if (chave !== undefined) Object.assign(r, await chavePixService.resumirDestino(usuarioId, chave));
+    if (chave !== undefined) Object.assign(r, await chaveTransferenciaService.resumirDestino(usuarioId, chave));
     Object.assign(r, campos);
     return r.save();
   }
@@ -51,7 +51,7 @@ class RecorrenciaService {
 
   async executarDoDia(data) {
     const resultado = { executadas: 0, falhas: 0 };
-    const agendadas = await PixRecorrente.find({
+    const agendadas = await TransferenciaRecorrente.find({
       ativa: true,
       diaDoMes: data.getUTCDate(),
       ultimaExecucao: { $ne: data },
@@ -64,7 +64,7 @@ class RecorrenciaService {
         descricao: r.descricao,
       };
       try {
-        const t = await pixService.transferir(r.usuarioId, pedido, { recorrenciaId: r._id, data });
+        const t = await transferenciaService.transferir(r.usuarioId, pedido, { recorrenciaId: r._id, data });
         r.ultimoStatus = 'concluida';
         r.ultimaExecucao = data;
         await r.save();
