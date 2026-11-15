@@ -3,8 +3,21 @@ const env = require('./env');
 
 async function conectarBanco(uri = env.mongoUri, dbName?: string) {
   mongoose.set('strictQuery', true);
-  await mongoose.connect(uri, dbName ? { dbName } : {});
+  await mongoose.connect(uri, {
+    ...(dbName && { dbName }),
+    ...(env.naVercel && { maxPoolSize: 5, serverSelectionTimeoutMS: 8000 }),
+  });
   return mongoose.connection;
+}
+
+let conexaoPendente: ReturnType<typeof conectarBanco> | undefined;
+
+function garantirBanco() {
+  if (mongoose.connection.readyState === 1) return Promise.resolve(mongoose.connection);
+  conexaoPendente ??= conectarBanco().finally(() => {
+    conexaoPendente = undefined;
+  });
+  return conexaoPendente;
 }
 
 const desconectarBanco = () => mongoose.disconnect();
@@ -17,4 +30,4 @@ async function resetarBanco() {
   await Promise.all(Object.values(mongoose.models).map((m) => m.syncIndexes()));
 }
 
-module.exports = { conectarBanco, desconectarBanco, resetarBanco };
+module.exports = { conectarBanco, garantirBanco, desconectarBanco, resetarBanco };

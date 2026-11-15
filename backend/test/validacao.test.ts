@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { dataIso } = require('../src/validators/comum');
 const request = require('supertest');
-const app = require('../src/app');
+const { default: app } = require('../src/app');
 
 test('datas rejeitam dias inexistentes e aceitam anos bissextos', () => {
   for (const data of ['2026-02-29', '2026-02-31', '2026-04-31', '2026-13-01', 'invalida']) {

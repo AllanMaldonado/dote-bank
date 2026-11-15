@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 process.env.NODE_ENV = 'test';
 
 const request = require('supertest');
-const app = require('../src/app');
+const { default: app } = require('../src/app');
 const { conectarBanco, desconectarBanco, resetarBanco } = require('../src/config/database');
 const authService = require('../src/services/authService');
 const emailService = require('../src/services/emailService');

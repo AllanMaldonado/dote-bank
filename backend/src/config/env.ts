@@ -1,9 +1,11 @@
 require('dotenv').config();
 
 const nodeEnv = process.env.NODE_ENV || 'development';
+const naVercel = process.env.VERCEL === '1';
 
 const env = {
   nodeEnv,
+  naVercel,
   isProd: nodeEnv === 'production',
   isDev: nodeEnv === 'development',
   isTest: nodeEnv === 'test',
@@ -27,6 +29,14 @@ const env = {
     from: process.env.SMTP_FROM || 'DOTE <no-reply@dote.dev>',
   },
 };
+
+if (naVercel) {
+  if (!process.env.MONGODB_URI) throw new Error('MONGODB_URI é obrigatório na Vercel');
+  if (!process.env.FRONTEND_URL || !/^https?:\/\/[^/?#]+$/.test(env.frontendUrl)) {
+    throw new Error('FRONTEND_URL deve conter a origem do frontend');
+  }
+  if (env.jwtSecret.length < 32) throw new Error('JWT_SECRET deve ter pelo menos 32 caracteres na Vercel');
+}
 
 if (!env.jwtSecret) {
   if (env.isProd) throw new Error('JWT_SECRET é obrigatório em produção');

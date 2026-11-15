@@ -16,8 +16,10 @@ export function definirAoExpirarSessao(fn) {
 
 const SEM_REDIRECIONAR = ['/auth/login', '/auth/register', '/auth/me', '/auth/forgot-password', '/auth/reset-password'];
 
+const origemApi = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') ?? '';
+
 const cliente = axios.create({
-  baseURL: '/api',  
+  baseURL: origemApi ? origemApi + '/api' : '/api',
   timeout: 20_000,
 });
 

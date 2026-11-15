@@ -1,4 +1,4 @@
-const app = require('./app');
+import app from './app';
 const env = require('./config/env');
 const { conectarBanco } = require('./config/database');
 
