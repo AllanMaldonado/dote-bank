@@ -3,6 +3,9 @@ const { after, before, describe, test } = require('node:test');
 const { criarAdmin, criarClienteAtivo, encerrarBanco, iniciarBanco } = require('./helpers');
 
 const Caixinha = require('../src/models/Caixinha');
+const Config = require('../src/models/Config');
+const Transacao = require('../src/models/Transacao');
+const User = require('../src/models/User');
 const recorrenciaService = require('../src/services/recorrenciaService');
 const relogioService = require('../src/services/relogioService');
 const tempoService = require('../src/services/tempoService');
@@ -139,5 +142,59 @@ describe('motor de tempo: rendimentos e Transferência agendada', () => {
     const antes = (await pendente()) ?? 0;
     await tempoService.avancar({ dias: 1 });
     assert.equal((await pendente()) ?? 0, antes);
+  });
+
+  test('sincronizar exige administrador', async () => {
+    await ana.agente.post('/api/admin/relogio/sincronizar').send({}).expect(403);
+  });
+
+  test('sincronizar durante um avanço retorna relógio ocupado', async () => {
+    const primeira = tempoService.avancar({ dias: 1 });
+    await assert.rejects(
+      tempoService.sincronizarServidor(),
+      (err) => err.status === 409 && err.codigo === 'relogio_ocupado',
+    );
+    await primeira;
+  });
+
+  test('volta à data UTC do servidor e evita repetir dias processados', async (t) => {
+    const antes = await relogioService.obterConfig();
+    const saldos = () => User.find({}, 'saldoCentavos').sort({ _id: 1 }).lean();
+    const caixinhas = () => Caixinha.find().sort({ _id: 1 }).lean();
+    const saldosAntes = await saldos();
+    const caixinhasAntes = await caixinhas();
+    const transacoesAntes = await Transacao.countDocuments();
+    t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-01-02T23:45:00Z').getTime() });
+
+    const retorno = await admin.post('/api/admin/relogio/sincronizar').send({}).expect(200);
+    assert.equal(retorno.body.dataSistema, '2026-01-02T00:00:00.000Z');
+    const sincronizada = await relogioService.obterConfig();
+    assert.equal(sincronizada.dataProcessadaAte.getTime(), antes.dataSistema.getTime());
+    assert.equal(sincronizada.ultimoDiaJuros.getTime(), antes.ultimoDiaJuros.getTime());
+
+    const resumo = await tempoService.avancar({ ate: antes.dataSistema.toISOString().slice(0, 10) });
+    assert.equal(resumo.recorrenciasExecutadas, 0);
+    assert.equal(resumo.recorrenciasFalhas, 0);
+    assert.equal(resumo.rendimentosCentavos, 0);
+    assert.deepEqual(await saldos(), saldosAntes);
+    assert.deepEqual(await caixinhas(), caixinhasAntes);
+    assert.equal(await Transacao.countDocuments(), transacoesAntes);
+
+    const antesJuros = (await Caixinha.findById(caixinhaId).lean()).rendimentoPendente;
+    await tempoService.avancar({ dias: 1 });
+    assert.ok((await Caixinha.findById(caixinhaId).lean()).rendimentoPendente > antesJuros);
+  });
+
+  test('sincronização repetida preserva a maior data processada de configurações antigas', async (t) => {
+    const dataFutura = new Date('2028-06-10T00:00:00Z');
+    await Config.updateOne({ _id: 'global' }, { $set: { dataSistema: dataFutura }, $unset: { dataProcessadaAte: '' } });
+    t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-16T12:00:00Z').getTime() });
+    await tempoService.sincronizarServidor();
+    const primeira = await relogioService.obterConfig();
+    await tempoService.sincronizarServidor();
+    const segunda = await relogioService.obterConfig();
+    assert.equal(segunda.dataSistema.toISOString(), '2026-11-16T00:00:00.000Z');
+    assert.equal(segunda.dataProcessadaAte.getTime(), dataFutura.getTime());
+    assert.deepEqual(segunda.dataProcessadaAte, primeira.dataProcessadaAte);
   });
 });

@@ -21,8 +21,25 @@ class RelogioService {
     return Config.findOneAndUpdate({ _id: ID }, { $set: taxas, ...NA_CRIACAO }, UPSERT);
   }
 
-  definirData(data) {
-    return Config.findOneAndUpdate({ _id: ID }, { $set: { dataSistema: inicioDoDiaUTC(data) } }, UPSERT);
+  definirData(data, { processada = false } = {}) {
+    const dia = inicioDoDiaUTC(data);
+    return Config.findOneAndUpdate(
+      { _id: ID },
+      { $set: { dataSistema: dia }, ...(processada && { $max: { dataProcessadaAte: dia } }) },
+      UPSERT,
+    );
+  }
+
+  async sincronizarServidor() {
+    await this.obterConfig();
+    return Config.findOneAndUpdate(
+      { _id: ID },
+      [{ $set: {
+        dataProcessadaAte: { $max: ['$dataProcessadaAte', '$dataSistema'] },
+        dataSistema: inicioDoDiaUTC(),
+      } }],
+      { new: true, lean: true },
+    );
   }
 }
 

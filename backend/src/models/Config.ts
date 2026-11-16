@@ -7,6 +7,7 @@ const configSchema = new mongoose.Schema(
     indicePointsAnual: { type: Number, default: 12, min: 0, max: 100 },  
     percentualCaixinha: { type: Number, default: 105, min: 0, max: 500 },  
     ultimoDiaJuros: Date,
+    dataProcessadaAte: Date,
   },
   { timestamps: true },
 );

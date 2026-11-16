@@ -24,6 +24,7 @@ router.get('/clientes/:id/relatorio', validateRequest(relatorioSchema), relatori
 router.post('/clientes/:id/relatorio/analise', iaLimiter, validateRequest(analiseSchema), relatorioController.analise);
 router.get('/config', controller.obterConfig);
 router.put('/config/taxas', validateRequest(atualizarTaxasSchema), controller.atualizarTaxas);
+router.post('/relogio/sincronizar', controller.sincronizarRelogio);
 router.post('/relogio/avancar', validateRequest(avancarRelogioSchema), controller.avancarRelogio);  
 
 module.exports = router;

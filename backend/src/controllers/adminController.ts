@@ -53,6 +53,10 @@ class AdminController {
     res.json({ config: configPublica(await relogioService.obterConfig()), resumo });
   }
 
+  async sincronizarRelogio(req, res) {
+    res.json(configPublica(await tempoService.sincronizarServidor()));
+  }
+
   async painel(req, res) {
     res.json(await adminService.painel());
   }

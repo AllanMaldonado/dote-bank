@@ -29,6 +29,16 @@ function calcularAlvo(de, { dias, meses, ate }) {
 let avancando = false;
 
 class TempoService {
+  async sincronizarServidor() {
+    if (avancando) throw conflict('O relógio já está avançando; aguarde terminar', 'relogio_ocupado');
+    avancando = true;
+    try {
+      return await relogioService.sincronizarServidor();
+    } finally {
+      avancando = false;
+    }
+  }
+
   async avancar(pedido) {
     if (avancando) throw conflict('O relógio já está avançando; aguarde terminar', 'relogio_ocupado');
     avancando = true;
@@ -45,12 +55,16 @@ class TempoService {
       };
 
       for (let dia = somarDias(config.dataSistema, 1); dia <= alvo; dia = somarDias(dia, 1)) {
+        if (config.dataProcessadaAte && dia <= config.dataProcessadaAte) {
+          await relogioService.definirData(dia);
+          continue;
+        }
         await rendimentoService.acumularDia(config, dia);
         if (dia.getUTCDate() === 1) resumo.rendimentosCentavos += await rendimentoService.lancarMes(dia);
         const { executadas, falhas } = await recorrenciaService.executarDoDia(dia);
         resumo.recorrenciasExecutadas += executadas;
         resumo.recorrenciasFalhas += falhas;
-        await relogioService.definirData(dia);
+        await relogioService.definirData(dia, { processada: true });
       }
       return resumo;
     } finally {

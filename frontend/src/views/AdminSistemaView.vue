@@ -46,6 +46,17 @@
           >
         </div>
 
+        <v-btn
+          class="mt-4"
+          variant="outlined"
+          :loading="avancando === 'servidor'"
+          :disabled="!!avancando || !config"
+          @click="sincronizarRelogio"
+        >Voltar à data do servidor</v-btn>
+        <p class="text-muted text-body-2 mt-2">
+          Usa a data atual do servidor em UTC. Os próximos avanços processam somente datas inéditas.
+        </p>
+
         <v-card v-if="resumo" color="surface-bright" class="pa-4 mt-6">
           <div class="dote-label mb-2">último avanço · {{ resumo.dias }} {{ resumo.dias === 1 ? 'dia' : 'dias' }}</div>
           <div class="text-body-2">{{ formatData(resumo.de) }} → {{ formatData(resumo.ate) }}</div>
@@ -167,6 +178,19 @@ async function salvarTaxas() {
   if (!c) return;
   aplicarConfig(c);
   toast.mostrar('Taxas atualizadas');
+}
+
+async function sincronizarRelogio() {
+  if (avancando.value || !config.value) return;
+  avancando.value = 'servidor';
+  const c = await executar(() => adminApi.sincronizarRelogio());
+  avancando.value = null;
+  if (!c) return;
+  aplicarConfig(c);
+  contaStore.dataSistema = c.dataSistema;
+  datas.value = [];
+  resumo.value = null;
+  toast.mostrar('Relógio ajustado à data do servidor');
 }
 
 aoAbrirTela(() => executar(async () => aplicarConfig(await adminApi.obterConfig())));
