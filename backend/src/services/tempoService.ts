@@ -2,6 +2,10 @@ const { badRequest, conflict } = require('../utils/AppError');
 const recorrenciaService = require('./recorrenciaService');
 const relogioService = require('./relogioService');
 const rendimentoService = require('./rendimentoService');
+const bloqueioSistema = require('./bloqueioSistemaService');
+const reversaoTempoService = require('./reversaoTempoService');
+const DiaSimulado = require('../models/DiaSimulado');
+const Caixinha = require('../models/Caixinha');
 
 const MAX_DIAS = 400;
 const UM_DIA_MS = 24 * 60 * 60 * 1000;
@@ -33,7 +37,8 @@ class TempoService {
     if (avancando) throw conflict('O relógio já está avançando; aguarde terminar', 'relogio_ocupado');
     avancando = true;
     try {
-      return await relogioService.sincronizarServidor();
+      await relogioService.obterConfig();
+      return await bloqueioSistema.exclusivo((bloqueio) => reversaoTempoService.executar(bloqueio));
     } finally {
       avancando = false;
     }
@@ -43,30 +48,37 @@ class TempoService {
     if (avancando) throw conflict('O relógio já está avançando; aguarde terminar', 'relogio_ocupado');
     avancando = true;
     try {
-      const config = await relogioService.obterConfig();
-      const { alvo, diasAvancados } = calcularAlvo(config.dataSistema, pedido);
-      const resumo = {
-        de: config.dataSistema,
-        ate: alvo,
-        dias: diasAvancados,
-        recorrenciasExecutadas: 0,
-        recorrenciasFalhas: 0,
-        rendimentosCentavos: 0,
-      };
-
-      for (let dia = somarDias(config.dataSistema, 1); dia <= alvo; dia = somarDias(dia, 1)) {
-        if (config.dataProcessadaAte && dia <= config.dataProcessadaAte) {
-          await relogioService.definirData(dia);
-          continue;
+      return await bloqueioSistema.exclusivo(async (bloqueio) => {
+        const config = await relogioService.obterConfig();
+        if (config.dataProcessadaAte > config.dataSistema) {
+          throw conflict(
+            'Remova os efeitos futuros pela tela Sistema antes de avançar novamente.',
+            'efeitos_futuros_pendentes',
+          );
         }
-        await rendimentoService.acumularDia(config, dia);
-        if (dia.getUTCDate() === 1) resumo.rendimentosCentavos += await rendimentoService.lancarMes(dia);
-        const { executadas, falhas } = await recorrenciaService.executarDoDia(dia);
-        resumo.recorrenciasExecutadas += executadas;
-        resumo.recorrenciasFalhas += falhas;
-        await relogioService.definirData(dia, { processada: true });
-      }
-      return resumo;
+        const { alvo, diasAvancados } = calcularAlvo(config.dataSistema, pedido);
+        const resumo = {
+          de: config.dataSistema,
+          ate: alvo,
+          dias: diasAvancados,
+          recorrenciasExecutadas: 0,
+          recorrenciasFalhas: 0,
+          rendimentosCentavos: 0,
+        };
+
+        for (let dia = somarDias(config.dataSistema, 1); dia <= alvo; dia = somarDias(dia, 1)) {
+          await bloqueio.confirmar();
+          const caixinhas = await Caixinha.find().lean();
+          await DiaSimulado.updateOne({ _id: dia }, { $setOnInsert: { caixinhas } }, { upsert: true });
+          await rendimentoService.acumularDia(config, dia);
+          if (dia.getUTCDate() === 1) resumo.rendimentosCentavos += await rendimentoService.lancarMes(dia);
+          const { executadas, falhas } = await recorrenciaService.executarDoDia(dia);
+          resumo.recorrenciasExecutadas += executadas;
+          resumo.recorrenciasFalhas += falhas;
+          await relogioService.definirData(dia, { processada: true });
+        }
+        return resumo;
+      });
     } finally {
       avancando = false;
     }

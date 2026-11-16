@@ -5,7 +5,6 @@ const { criarAdmin, criarClienteAtivo, encerrarBanco, iniciarBanco } = require('
 const Caixinha = require('../src/models/Caixinha');
 const Config = require('../src/models/Config');
 const Transacao = require('../src/models/Transacao');
-const User = require('../src/models/User');
 const recorrenciaService = require('../src/services/recorrenciaService');
 const relogioService = require('../src/services/relogioService');
 const tempoService = require('../src/services/tempoService');
@@ -157,35 +156,27 @@ describe('motor de tempo: rendimentos e Transferência agendada', () => {
     await primeira;
   });
 
-  test('volta à data UTC do servidor e evita repetir dias processados', async (t) => {
+  test('volta à data UTC do servidor e permite processar novamente o período desfeito', async (t) => {
     const antes = await relogioService.obterConfig();
-    const saldos = () => User.find({}, 'saldoCentavos').sort({ _id: 1 }).lean();
-    const caixinhas = () => Caixinha.find().sort({ _id: 1 }).lean();
-    const saldosAntes = await saldos();
-    const caixinhasAntes = await caixinhas();
-    const transacoesAntes = await Transacao.countDocuments();
     t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-01-02T23:45:00Z').getTime() });
 
     const retorno = await admin.post('/api/admin/relogio/sincronizar').send({}).expect(200);
     assert.equal(retorno.body.dataSistema, '2026-01-02T00:00:00.000Z');
     const sincronizada = await relogioService.obterConfig();
-    assert.equal(sincronizada.dataProcessadaAte.getTime(), antes.dataSistema.getTime());
-    assert.equal(sincronizada.ultimoDiaJuros.getTime(), antes.ultimoDiaJuros.getTime());
+    assert.equal(sincronizada.dataProcessadaAte.toISOString(), '2026-01-02T00:00:00.000Z');
+    assert.equal(sincronizada.ultimoDiaJuros.toISOString(), '2026-01-02T00:00:00.000Z');
+    assert.ok(retorno.body.reversao.transacoesRemovidas > 0);
+    assert.equal(await Transacao.countDocuments({ data: { $gt: sincronizada.dataSistema } }), 0);
 
     const resumo = await tempoService.avancar({ ate: antes.dataSistema.toISOString().slice(0, 10) });
-    assert.equal(resumo.recorrenciasExecutadas, 0);
-    assert.equal(resumo.recorrenciasFalhas, 0);
-    assert.equal(resumo.rendimentosCentavos, 0);
-    assert.deepEqual(await saldos(), saldosAntes);
-    assert.deepEqual(await caixinhas(), caixinhasAntes);
-    assert.equal(await Transacao.countDocuments(), transacoesAntes);
+    assert.ok(resumo.rendimentosCentavos > 0);
 
     const antesJuros = (await Caixinha.findById(caixinhaId).lean()).rendimentoPendente;
     await tempoService.avancar({ dias: 1 });
     assert.ok((await Caixinha.findById(caixinhaId).lean()).rendimentoPendente > antesJuros);
   });
 
-  test('sincronização repetida preserva a maior data processada de configurações antigas', async (t) => {
+  test('sincronização repetida mantém o relógio atual e libera os dias desfeitos', async (t) => {
     const dataFutura = new Date('2028-06-10T00:00:00Z');
     await Config.updateOne({ _id: 'global' }, { $set: { dataSistema: dataFutura }, $unset: { dataProcessadaAte: '' } });
     t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-16T12:00:00Z').getTime() });
@@ -194,7 +185,7 @@ describe('motor de tempo: rendimentos e Transferência agendada', () => {
     await tempoService.sincronizarServidor();
     const segunda = await relogioService.obterConfig();
     assert.equal(segunda.dataSistema.toISOString(), '2026-11-16T00:00:00.000Z');
-    assert.equal(segunda.dataProcessadaAte.getTime(), dataFutura.getTime());
+    assert.equal(segunda.dataProcessadaAte.toISOString(), '2026-11-16T00:00:00.000Z');
     assert.deepEqual(segunda.dataProcessadaAte, primeira.dataProcessadaAte);
   });
 });

@@ -60,6 +60,10 @@ flowchart LR
 
 **Agendamentos.** Cada transferência mensal pode ser editada ou pausada. Escolha um dia de **1 a 28**. Na data simulada, o agendamento ativo é processado. Saldo insuficiente ou destino indisponível gera uma falha no extrato sem transferência de pontos. O avanço só acontece quando o administrador o solicita.
 
+Em **Administração → Sistema**, **Voltar à data do servidor** também desfaz os efeitos financeiros posteriores ao dia atual em UTC. **Remover efeitos futuros** faz a mesma correção quando o relógio já foi ajustado anteriormente. A operação corrige os saldos, remove os lançamentos e avisos futuros e restaura a última execução dos agendamentos. O dia atual é preservado por inteiro. Depois da reversão, os dias desfeitos podem ser simulados novamente.
+
+Cada reversão guarda um backup e só é confirmada quando todas as alterações são concluídas. Os novos avanços registram o estado diário das caixinhas para restaurar os juros pendentes. Para períodos antigos sem esse histórico, a tela identifica a reconstrução dos juros pela taxa atual como estimativa. Se os saldos atuais não permitirem desfazer as operações, a reversão é cancelada por inteiro.
+
 ## Extrato, relatório e Diamante
 
 | Recurso | Leitura na prática |

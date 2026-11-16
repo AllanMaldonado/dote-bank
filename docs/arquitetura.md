@@ -68,8 +68,8 @@ O MongoDB guarda usuários, chaves, contatos, caixinhas, recorrências, transaç
 
 | Área | Estado atual |
 | --- | --- |
-| Concorrência | A fila de operações e a trava do relógio vivem no processo. Instâncias separadas podem executar operações simultâneas. |
-| Recuperação | A compensação cobre falhas tratadas. Queda do processo ou falha durante o estorno pode exigir conciliação. Transações MongoDB e idempotência persistente são necessárias para operação distribuída com garantia de saldo. |
+| Concorrência | Escritas HTTP registram concessões no MongoDB. Avanço e reversão do relógio usam uma trava exclusiva compartilhada entre instâncias. As filas por conta continuam no processo. |
+| Recuperação | A reversão exige MongoDB com transações, como um replica set ou Atlas, e guarda os registros anteriores em `backups_reversao`, agrupados pelo identificador exibido na tela. As movimentações comuns usam compensação de falhas e podem exigir conciliação após uma queda do processo. |
 | Tipagem e testes | TypeScript ainda aceita tipos implícitos. Os testes automatizados do Vue cobrem lógica e estado. Use a [demonstração](demonstracao.md) para conferir os fluxos visuais. |
 
 ## Compatibilidade de transferências

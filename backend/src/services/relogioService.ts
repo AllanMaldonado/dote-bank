@@ -29,18 +29,6 @@ class RelogioService {
       UPSERT,
     );
   }
-
-  async sincronizarServidor() {
-    await this.obterConfig();
-    return Config.findOneAndUpdate(
-      { _id: ID },
-      [{ $set: {
-        dataProcessadaAte: { $max: ['$dataProcessadaAte', '$dataSistema'] },
-        dataSistema: inicioDoDiaUTC(),
-      } }],
-      { new: true, lean: true },
-    );
-  }
 }
 
 module.exports = new RelogioService();

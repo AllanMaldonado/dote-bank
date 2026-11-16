@@ -14,6 +14,7 @@ const relatorioRoutes = require('./relatorioRoutes');
 const transacaoRoutes = require('./transacaoRoutes');
 
 const router = Router();
+router.use(require('../middlewares/protegerEscrita'));
 const cliente = [authMiddleware, exigirAtivo, authorize('cliente')];
 
 router.get('/saude', (req, res) => res.json({ ok: true }));

@@ -46,16 +46,34 @@
           >
         </div>
 
-        <v-btn
-          class="mt-4"
-          variant="outlined"
-          :loading="avancando === 'servidor'"
-          :disabled="!!avancando || !config"
-          @click="sincronizarRelogio"
-        >Voltar à data do servidor</v-btn>
+        <div class="d-flex flex-wrap ga-2 mt-4">
+          <v-btn
+            variant="outlined"
+            :loading="avancando === 'servidor'"
+            :disabled="!!avancando || !config"
+            @click="pedirReversao('servidor')"
+          >Voltar à data do servidor</v-btn>
+          <v-btn
+            variant="text"
+            color="error"
+            :loading="avancando === 'limpeza'"
+            :disabled="!!avancando || !config"
+            @click="pedirReversao('limpeza')"
+          >Remover efeitos futuros</v-btn>
+        </div>
         <p class="text-muted text-body-2 mt-2">
-          Usa a data atual do servidor em UTC. Os próximos avanços processam somente datas inéditas.
+          Voltar à data do servidor também desfaz os lançamentos após hoje em UTC e corrige os saldos.
+          Use “Remover efeitos futuros” se você já voltou a data e ainda possui efeitos da simulação.
         </p>
+
+        <v-card v-if="reversao" color="surface-bright" class="pa-4 mt-4" role="status">
+          <div class="dote-label mb-2">reversão concluída</div>
+          <p class="text-body-2">{{ reversao.transacoesRemovidas }} lançamentos e {{ reversao.notificacoesRemovidas }} notificações removidos.</p>
+          <p v-if="reversao.jurosEstimados" class="text-body-2 text-warning mt-2">
+            Os juros pendentes antigos foram estimados usando a taxa atual, pois não havia histórico diário.
+          </p>
+          <p class="text-muted text-body-2 mt-2">Backup da reversão · {{ reversao.backupId }}</p>
+        </v-card>
 
         <v-card v-if="resumo" color="surface-bright" class="pa-4 mt-6">
           <div class="dote-label mb-2">último avanço · {{ resumo.dias }} {{ resumo.dias === 1 ? 'dia' : 'dias' }}</div>
@@ -108,10 +126,20 @@
       </v-card>
     </v-col>
   </v-row>
+  <DialogoConfirmar
+    v-model="confirmarReversao"
+    titulo="Desfazer efeitos futuros"
+    mensagem="Os lançamentos após hoje em UTC serão removidos, com correção dos saldos e agendamentos. Um backup será guardado. Juros antigos sem histórico diário serão estimados pela taxa atual."
+    acao="Desfazer e voltar para hoje"
+    perigo
+    :carregando="!!avancando"
+    @confirmar="sincronizarRelogio"
+  />
 </template>
 
 <script setup lang="ts">
 import AlertaErro from '../components/AlertaErro.vue';
+import DialogoConfirmar from '../components/DialogoConfirmar.vue';
 import { computed, reactive, ref } from 'vue';
 import SeletorPeriodo from '../components/SeletorPeriodo.vue';
 import { aoAbrirTela } from '../composables/aoAbrirTela';
@@ -126,6 +154,9 @@ const contaStore = useContaStore();
 const toast = useToastStore();
 const config = ref(null);
 const resumo = ref(null);
+const reversao = ref(null);
+const confirmarReversao = ref(false);
+const acaoReversao = ref('servidor');
 const datas = ref([]);
 const ate = computed(() => datas.value[0] ?? '');
 const amanha = computed(() => {
@@ -169,6 +200,7 @@ async function avancar(nome, pedido) {
   aplicarConfig(r.config);
   datas.value = [];
   resumo.value = r.resumo;
+  reversao.value = null;
   contaStore.dataSistema = r.config.dataSistema;
   toast.mostrar('Relógio avançado');
 }
@@ -180,17 +212,24 @@ async function salvarTaxas() {
   toast.mostrar('Taxas atualizadas');
 }
 
+function pedirReversao(acao) {
+  acaoReversao.value = acao;
+  confirmarReversao.value = true;
+}
+
 async function sincronizarRelogio() {
   if (avancando.value || !config.value) return;
-  avancando.value = 'servidor';
+  avancando.value = acaoReversao.value;
   const c = await executar(() => adminApi.sincronizarRelogio());
   avancando.value = null;
+  confirmarReversao.value = false;
   if (!c) return;
   aplicarConfig(c);
   contaStore.dataSistema = c.dataSistema;
   datas.value = [];
   resumo.value = null;
-  toast.mostrar('Relógio ajustado à data do servidor');
+  reversao.value = c.reversao;
+  toast.mostrar('Efeitos futuros revertidos e data atualizada');
 }
 
 aoAbrirTela(() => executar(async () => aplicarConfig(await adminApi.obterConfig())));

@@ -80,7 +80,7 @@ const ROTAS: Rota[] = [
   ['get', '/admin/config', 'Configuração do sistema (taxas e data simulada)', true],
   ['put', '/admin/config/taxas', 'Atualiza as taxas', true],
   ['post', '/admin/relogio/avancar', 'Avança o relógio simulado ({dias} | {meses} | {ate})', true],
-  ['post', '/admin/relogio/sincronizar', 'Ajusta o relógio à data atual do servidor em UTC', true],
+  ['post', '/admin/relogio/sincronizar', 'Reverte efeitos financeiros futuros e ajusta o relógio à data atual do servidor em UTC', true],
 ];
 
 const TAGS = {

@@ -12,5 +12,5 @@ export const adminApi = {
   obterConfig: () => http.get('/admin/config'),
   atualizarTaxas: (dados) => http.put('/admin/config/taxas', dados),
   avancarRelogio: (pedido) => http.post('/admin/relogio/avancar', pedido, { timeout: 60_000 }),
-  sincronizarRelogio: () => http.post('/admin/relogio/sincronizar'),
+  sincronizarRelogio: () => http.post('/admin/relogio/sincronizar', undefined, { timeout: 60_000 }),
 };
