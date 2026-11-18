@@ -4,6 +4,8 @@ Banco digital simulado de pontos (P$), criado para o projeto prático de Linguag
 
 **Integrantes** Allan Maldonado e Caio Collete.
 
+**Vídeo Demonstrativo**: [DOTE BANK - DEMO](https://vimeo.com/1248052555?fl=ip&fe=ec&share=copy)
+
 O DOTE permite abrir uma conta, transferir pontos, gerenciar contatos e chaves, organizar economias em caixinhas e acompanhar o extrato. O administrador aprova contas e controla o relógio simulado. O Diamante reúne avisos e analisa relatórios com o Gemini.
 
 **Stack** TypeScript, Node.js, Express, MongoDB, Vue 3, Vuetify, Pinia e Vite.
